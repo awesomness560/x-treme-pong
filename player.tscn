@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://um742cw0df5j"]
+
+[ext_resource type="Script" uid="uid://d24y6myts1eqx" path="res://player.gd" id="1_4flbx"]
+[ext_resource type="Script" uid="uid://qjkx3j5q6qh3" path="res://smash.gd" id="2_onrkg"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qg41d"]
+size = Vector2(12, 114)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_nq5bd"]
+size = Vector2(50, 126)
+
+[node name="Player" type="CharacterBody2D" unique_id=1814723530]
+script = ExtResource("1_4flbx")
+speed = 1200.0
+responsiveness = 6000.0
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1557076092]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -7.0
+offset_top = -55.0
+offset_right = 7.0
+offset_bottom = 55.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1085590486]
+shape = SubResource("RectangleShape2D_qg41d")
+
+[node name="Paddle" type="Line2D" parent="." unique_id=1548162226 node_paths=PackedStringArray("player")]
+points = PackedVector2Array(0, 57, 0, -55)
+default_color = Color(1.572, 0.308, 0.852, 1)
+script = ExtResource("2_onrkg")
+player = NodePath("..")
+
+[node name="HitArea" type="Area2D" parent="Paddle" unique_id=1268401425]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Paddle/HitArea" unique_id=2031404354]
+position = Vector2(15, 0)
+shape = SubResource("RectangleShape2D_nq5bd")
+
+[connection signal="body_entered" from="Paddle/HitArea" to="Paddle" method="_on_hit_area_body_entered"]
+[connection signal="body_exited" from="Paddle/HitArea" to="Paddle" method="_on_hit_area_body_exited"]

@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://dsyix1rmurfo6"]
+
+[ext_resource type="Script" uid="uid://cnhhxwkuovl72" path="res://ai.gd" id="1_c35dq"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qg41d"]
+size = Vector2(12, 114)
+
+[node name="AI" type="CharacterBody2D" unique_id=1543865057 node_paths=PackedStringArray("collision_shape")]
+script = ExtResource("1_c35dq")
+collision_shape = NodePath("CollisionShape2D")
+ball_radius = 15.0
+speed = 300.0
+responsiveness = 2000.0
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1557076092]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -5.0
+offset_top = -55.0
+offset_right = 5.0
+offset_bottom = 55.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.24705882, 0.8156863, 1, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1085590486]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_qg41d")

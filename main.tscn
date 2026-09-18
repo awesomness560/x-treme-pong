@@ -1,0 +1,99 @@
+[gd_scene format=3 uid="uid://dcmv67q06vmix"]
+
+[ext_resource type="PackedScene" uid="uid://dsyix1rmurfo6" path="res://ai.tscn" id="1_7mycd"]
+[ext_resource type="PackedScene" uid="uid://um742cw0df5j" path="res://player.tscn" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://1tp7vl5f1cn0" path="res://wall.gd" id="2_0xm2m"]
+[ext_resource type="PackedScene" uid="uid://cub4xcf35fdp7" path="res://ball.tscn" id="3_h2yge"]
+[ext_resource type="PackedScene" uid="uid://caeq2d6x42jg5" path="res://ui.tscn" id="5_5vw27"]
+[ext_resource type="Shader" uid="uid://cq5vxewboysv4" path="res://Shaders/grid.gdshader" id="7_272bh"]
+[ext_resource type="Shader" uid="uid://o0u2fgk5o2pv" path="res://Shaders/dotted_line.gdshader" id="8_5vw27"]
+[ext_resource type="PackedScene" uid="uid://dyf6b555474er" path="res://border.tscn" id="9_kek77"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qg41d"]
+size = Vector2(1262, 62)
+
+[sub_resource type="Environment" id="Environment_qg41d"]
+background_mode = 3
+glow_enabled = true
+glow_intensity = 1.4
+glow_bloom = 0.51
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nq5bd"]
+shader = ExtResource("7_272bh")
+shader_parameter/background_color = Color(0.02, 0.01, 0.05, 1)
+shader_parameter/line_color = Color(0.10520192, 0.10338908, 0.07983454, 1)
+shader_parameter/line_intensity = 0.6
+shader_parameter/cell_size = 64.0
+shader_parameter/line_width = 1.0
+shader_parameter/glow_width = 5.0
+shader_parameter/glow_strength = 0.2
+shader_parameter/major_every = 4
+shader_parameter/major_boost = 1.8
+shader_parameter/perspective = 0.35
+shader_parameter/vanish_right = true
+shader_parameter/depth_fade = 0.6
+shader_parameter/scroll_speed = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vbfgd"]
+shader = ExtResource("8_5vw27")
+shader_parameter/line_color = Color(1, 1, 1, 1)
+shader_parameter/thickness = 5.170000221825
+shader_parameter/dash_length = 25.8410011799475
+shader_parameter/gap_length = 14.0
+shader_parameter/softness = 1.0
+
+[node name="Main" type="Node2D" unique_id=410257257]
+
+[node name="AI" parent="." unique_id=1543865057 instance=ExtResource("1_7mycd")]
+position = Vector2(536, -2)
+
+[node name="Player" parent="." unique_id=1240206019 instance=ExtResource("1_ig7tw")]
+position = Vector2(-552, 2)
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1969608290]
+
+[node name="WallBottom" type="StaticBody2D" parent="." unique_id=236074755 node_paths=PackedStringArray("collision_shape")]
+script = ExtResource("2_0xm2m")
+side = 1
+collision_shape = NodePath("CollisionShape2D")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallBottom" unique_id=1146454401]
+position = Vector2(0, -353)
+shape = SubResource("RectangleShape2D_qg41d")
+
+[node name="WallTop" type="StaticBody2D" parent="." unique_id=1371470456 node_paths=PackedStringArray("collision_shape")]
+script = ExtResource("2_0xm2m")
+collision_shape = NodePath("CollisionShape2D")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallTop" unique_id=1470618954]
+position = Vector2(0, -353)
+shape = SubResource("RectangleShape2D_qg41d")
+
+[node name="Ball" parent="." unique_id=572260270 instance=ExtResource("3_h2yge")]
+position = Vector2(-2, -1)
+max_speed = 3000.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=58656547]
+environment = SubResource("Environment_qg41d")
+
+[node name="UI" parent="." unique_id=1984543490 instance=ExtResource("5_5vw27")]
+
+[node name="Background" type="ColorRect" parent="." unique_id=1128753973]
+visible = false
+z_index = -2
+material = SubResource("ShaderMaterial_nq5bd")
+offset_left = -738.0
+offset_top = -443.0
+offset_right = 778.0
+offset_bottom = 483.0
+mouse_filter = 2
+
+[node name="Dotted Line" type="ColorRect" parent="." unique_id=1037534832]
+material = SubResource("ShaderMaterial_vbfgd")
+offset_left = -23.0
+offset_top = -450.0
+offset_right = 17.0
+offset_bottom = 373.0
+
+[node name="Border" parent="." unique_id=1802476433 instance=ExtResource("9_kek77")]
+position = Vector2(581, 0)

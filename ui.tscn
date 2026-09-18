@@ -1,0 +1,76 @@
+[gd_scene format=3 uid="uid://caeq2d6x42jg5"]
+
+[ext_resource type="Shader" uid="uid://cmpoqiupjkvp1" path="res://Shaders/crt.gdshader" id="1_m6e0p"]
+[ext_resource type="Shader" uid="uid://ce1n0ftpw7x22" path="res://Shaders/profile.gdshader" id="2_27fn8"]
+[ext_resource type="Shader" uid="uid://boi77epguy0vf" path="res://Shaders/health_bar.gdshader" id="3_27fn8"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
+shader = ExtResource("1_m6e0p")
+shader_parameter/curvature = 0.1
+shader_parameter/border_softness = 0.003
+shader_parameter/scanline_opacity = 0.0
+shader_parameter/scanline_spacing = 3.0
+shader_parameter/aberration_px = 0.75
+shader_parameter/aberration_start = 0.5
+shader_parameter/vignette_strength = 0.0
+shader_parameter/vignette_radius = 1.4
+shader_parameter/vignette_softness = 0.8
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_qg41d"]
+shader = ExtResource("2_27fn8")
+shader_parameter/border_color = Color(1, 1, 1, 1)
+shader_parameter/fill_color = Color(0, 0, 0, 0)
+shader_parameter/border_width = 0.0970000046075
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nq5bd"]
+shader = ExtResource("3_27fn8")
+shader_parameter/health = 0.78
+shader_parameter/trail = 1.0
+shader_parameter/width = 800.0
+shader_parameter/height = 20.0
+shader_parameter/health_color = Color(1.4369954, 0.27734017, 0.7798575, 0.7607843)
+shader_parameter/full_health_color = Color(1.572, 0.308, 0.852, 1)
+shader_parameter/low_health_color = Color(0.87165, 0.43797, -0.04402, 1)
+shader_parameter/low_health_threshold = 0.25
+shader_parameter/low_health_pulse_speed = 2.0
+shader_parameter/damaged_health_color = Color(1.0221677, 1.0221677, 1.0221677, 0.7921569)
+shader_parameter/healed_health_color = Color(0.87182, 0.98235, 0.90501, 1)
+shader_parameter/edge_color = Color(4, 4, 4, 1)
+shader_parameter/edge_pixels = 4.0
+shader_parameter/background_color = Color(0.125, 0.125, 0.125, 1)
+shader_parameter/border_color = Color(0.125, 0.125, 0.125, 0.5)
+shader_parameter/border_pixels = 1.0
+shader_parameter/round_corners = false
+shader_parameter/skew_pixels = 10.0
+shader_parameter/top_quarter_modulate = Color(2, 2, 2, 1)
+shader_parameter/top_half_modulate = Color(1, 1, 1, 1)
+shader_parameter/bottom_half_modulate = Color(1, 1, 1, 1)
+shader_parameter/bottom_quarter_modulate = Color(1, 1, 1, 1)
+
+[node name="UI" type="CanvasLayer" unique_id=1984543490]
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=798438053]
+z_index = 1
+material = SubResource("ShaderMaterial_h2yge")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ProfilePic" type="ColorRect" parent="." unique_id=677215545]
+material = SubResource("ShaderMaterial_qg41d")
+offset_left = 44.000008
+offset_top = 4.0
+offset_right = 64.8809
+offset_bottom = 24.88086
+rotation = 0.7853982
+scale = Vector2(2.3594732, 2.3594732)
+
+[node name="HealthBar" type="ColorRect" parent="." unique_id=1257312253]
+material = SubResource("ShaderMaterial_nq5bd")
+offset_left = 73.0
+offset_top = 6.0
+offset_right = 233.0
+offset_bottom = 22.0

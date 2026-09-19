@@ -62,7 +62,7 @@ shape = SubResource("RectangleShape2D_qg41d")
 
 [node name="Ball" parent="." unique_id=572260270 instance=ExtResource("3_h2yge")]
 position = Vector2(-2, -1)
-max_speed = 3000.0
+start_speed = 600.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=58656547]
 environment = SubResource("Environment_qg41d")

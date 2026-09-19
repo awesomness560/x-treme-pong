@@ -12,6 +12,8 @@ signal ignited_changed(ignited: bool)
 @export_range(0.0, 89.0) var max_launch_angle_deg: float = 30.0
 
 @export_group("Taps")
+## Fraction of the arriving speed a tap returns at, once past the tap range.
+@export var tap_return_factor: float = 1.0
 ## Speed a tap adds while below the ramp ceiling.
 @export var tap_speed_gain: float = 90.0
 ## Taps ramp speed up to this fraction of ignite_speed, then only creep.
@@ -22,10 +24,10 @@ signal ignited_changed(ignited: bool)
 @export_range(0.1, 1.0) var tap_hard_ceiling: float = 0.92
 
 @export_group("Enemy Returns")
-## Speed the boss's return adds on top of what arrived.
+## Speed the boss adds while the rally is still building.
 @export var enemy_speed_gain: float = 60.0
-## The boss's returns are capped here, as a fraction of ignite_speed.
-@export_range(0.1, 2.0) var enemy_speed_ceiling: float = 0.95
+## Fraction of the arriving speed the boss returns at, once past the tap range.
+@export var enemy_return_factor: float = 1.0
 
 @export_group("Ignition")
 ## Speed at which the ball catches fire.
@@ -46,13 +48,21 @@ signal ignited_changed(ignited: bool)
 ## Seconds after a border hit during which the enemy paddle can't touch the ball.
 @export var border_grace_time: float = 0.35
 
+@export_group("Debug")
+## A Label or RichTextLabel to print ball info to. Leave empty to skip.
+@export var debug_label: Control
+@export var debug_enabled: bool = true
+
 var ignited := false
 
 var _speed := 0.0
 var _direction := Vector2.ZERO
+var _pending_smash := 0.0
 var _grace_timer := 0.0
 var _base_color := Color.WHITE
 var _color_tween: Tween
+var _last_event := "serve"
+var _hit_count := 0
 
 func _init() -> void:
 	GameState.ball = self
@@ -65,15 +75,17 @@ func _ready() -> void:
 
 func launch() -> void:
 	_speed = start_speed
+	_pending_smash = 0.0
+	_last_event = "serve"
+	_hit_count = 0
 	var angle := deg_to_rad(randf_range(-max_launch_angle_deg, max_launch_angle_deg))
 	var side := 1.0 if randf() < 0.5 else -1.0
 	_direction = Vector2(side * cos(angle), sin(angle))
 	_update_ignition()
 
-## Boost the ball's speed, for a smash. 1.0 leaves it unchanged.
+## Queue a smash. Applied when the ball actually reaches the paddle.
 func smash(multiplier: float) -> void:
-	_speed = clampf(_speed * multiplier, 0.0, max_speed)
-	_update_ignition()
+	_pending_smash = maxf(multiplier, 1.0)
 
 func get_motion() -> Vector2:
 	return _direction * _speed
@@ -155,7 +167,9 @@ func _hit_border(border: Node2D) -> void:
 
 	# The wall absorbs the hit: the ball drops out at serve speed.
 	_speed = start_speed
+	_pending_smash = 0.0
 	_grace_timer = border_grace_time
+	_last_event = "border (%.2f dmg)" % damage
 	_update_ignition()
 
 	GameState.take_damage.emit(damage)
@@ -184,22 +198,65 @@ func _bounce_off_paddle(collision: KinematicCollision2D) -> void:
 	_direction = Vector2(signf(collision.get_normal().x) * cos(angle), sin(angle))
 
 	var collider := collision.get_collider()
+	var before := _speed
 	if collider is EnemyPaddle:
 		_speed = _enemy_return_speed()
+		_last_event = "boss return"
+	elif _pending_smash > 1.0:
+		_speed = clampf(_speed * _pending_smash, 0.0, max_speed)
+		_last_event = "SMASH %.2fx" % _pending_smash
+		_pending_smash = 0.0
 	else:
 		_speed = _tap_speed()
+		_last_event = "tap"
+
+	_last_event += " (%.0f -> %.0f)" % [before, _speed]
+	_hit_count += 1
 
 	_update_ignition()
 	paddle_hit.emit(collider)
 
-## Taps ramp hard to the ceiling, then creep so every touch still reads.
+## Taps build the rally below the ceiling, and preserve speed above it.
 func _tap_speed() -> float:
 	var ceiling := ignite_speed * tap_ramp_ceiling
 	var hard_cap := ignite_speed * tap_hard_ceiling
 	if _speed < ceiling:
 		return minf(_speed + tap_speed_gain, ceiling)
-	return minf(_speed + tap_creep_gain, hard_cap)
+	if _speed <= hard_cap:
+		return minf(_speed + tap_creep_gain, hard_cap)
+	# Already faster than taps can build: keep it, minus a little.
+	return minf(_speed * tap_return_factor, max_speed)
 
-## The boss always adds a little, so its returns feel like hits too.
+## Builds the rally below the tap ceiling, decays smashes above it.
 func _enemy_return_speed() -> float:
-	return minf(_speed + enemy_speed_gain, ignite_speed * enemy_speed_ceiling)
+	var ceiling := ignite_speed * tap_hard_ceiling
+	if _speed <= ceiling:
+		return minf(_speed + enemy_speed_gain, ceiling)
+	# Past the tap range: bleed speed off, but never below the build ceiling.
+	return clampf(_speed * enemy_return_factor, ceiling, max_speed)
+
+# --- Debug ---
+
+func _process(_delta: float) -> void:
+	_write_debug()
+
+func _write_debug() -> void:
+	if not debug_enabled or debug_label == null:
+		return
+
+	var ceiling := ignite_speed * tap_ramp_ceiling
+	var hard_cap := ignite_speed * tap_hard_ceiling
+
+	var lines := [
+		"Speed: %.0f / %.0f px/s" % [_speed, max_speed],
+		"  horizontal: %.0f" % get_horizontal_speed(),
+		"  angle: %.1f deg" % rad_to_deg(_direction.angle()),
+		"Ignited: %s" % ("YES" if ignited else "no"),
+		"  ignite at %.0f, out at %.0f" % [ignite_speed, extinguish_speed],
+		"Tap range: %.0f -> %.0f (cap %.0f)" % [start_speed, ceiling, hard_cap],
+		"Last event: %s  (hit #%d)" % [_last_event, _hit_count],
+		"Pending smash: %s" % ("%.2fx" % _pending_smash if _pending_smash > 1.0 else "none"),
+		"Border grace: %.2fs" % _grace_timer,
+		"Next border damage: %.2f" % _compute_damage(),
+	]
+	debug_label.set("text", "\n".join(lines))

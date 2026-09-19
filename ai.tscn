@@ -11,6 +11,7 @@ collision_shape = NodePath("CollisionShape2D")
 ball_radius = 15.0
 speed = 300.0
 responsiveness = 2000.0
+skill = 0.861
 debug_label = NodePath("Debug/RichTextLabel")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1557076092]
@@ -32,6 +33,7 @@ position = Vector2(0, 1)
 shape = SubResource("RectangleShape2D_qg41d")
 
 [node name="Debug" type="CanvasLayer" parent="." unique_id=345440815]
+visible = false
 
 [node name="RichTextLabel" type="RichTextLabel" parent="Debug" unique_id=923674769]
 offset_left = 952.0

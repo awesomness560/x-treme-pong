@@ -7,10 +7,13 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_qg41d"]
 radius = 15.033297
 
-[node name="Ball" type="CharacterBody2D" unique_id=572260270 node_paths=PackedStringArray("sprite")]
+[node name="Ball" type="CharacterBody2D" unique_id=572260270 node_paths=PackedStringArray("sprite", "debug_label")]
 script = ExtResource("1_41u45")
+start_speed = 1000.0
+max_speed = 2000.0
 sprite = NodePath("Visuals")
 ignited_color = Color(1.5890393, 0.69354075, 0.2266023, 1)
+debug_label = NodePath("CanvasLayer/RichTextLabel")
 
 [node name="Visuals" type="Sprite2D" parent="." unique_id=1558599729 node_paths=PackedStringArray("ball")]
 modulate = Color(2.634323, 2.634323, 2.634323, 1)
@@ -21,3 +24,16 @@ ball = NodePath("..")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=215863815]
 shape = SubResource("CircleShape2D_qg41d")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1734355232]
+visible = false
+
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer" unique_id=1358436564]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -175.0
+offset_bottom = 215.0
+grow_horizontal = 0
+fit_content = true
+scroll_active = false

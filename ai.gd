@@ -27,6 +27,9 @@ enum State { RECOVER, REACT, TRACK }
 ## Subtracted from the total. Raise per round to make the boss better.
 @export_range(0.0, 1.0) var skill: float = 0.0
 @export_range(0.0, 1.0) var miss_chance_cap: float = 0.85
+@export var guarantee_after_damage: bool = true
+
+var _guaranteed_return := false
 
 @export_group("Miss Margin")
 ## How far past the paddle edge a miss lands, as a fraction of paddle height.
@@ -84,6 +87,7 @@ func _ready() -> void:
 	_locked_x = global_position.x
 	_noise_seed = randf() * 100.0
 	ball.paddle_hit.connect(_on_paddle_hit)
+	GameState.take_damage.connect(_on_border_damaged)
 
 # --- The dice roll ---
 
@@ -106,7 +110,12 @@ func _roll_for_shot() -> void:
 	chance -= skill
 
 	last_miss_chance = clampf(chance, 0.0, miss_chance_cap)
-	will_miss = randf() < last_miss_chance
+
+	if _guaranteed_return:
+		will_miss = false
+		_guaranteed_return = false
+	else:
+		will_miss = randf() < last_miss_chance
 
 	if will_miss:
 		var t := clampf(inverse_lerp(comfortable_speed, margin_max_at_speed,
@@ -212,6 +221,11 @@ func _time_to_arrival() -> float:
 	if absf(vx) < 1.0:
 		return 1.0
 	return maxf(absf(global_position.x - ball.global_position.x) / absf(vx), 0.001)
+
+## The border took a hit: no free farming off the rebound.
+func _on_border_damaged(_amount: float) -> void:
+	if guarantee_after_damage:
+		_guaranteed_return = true
 
 ## Always predicts properly. Missing is decided by the roll, not by bad reading.
 func _predict_ball_y(court: Rect2) -> float:

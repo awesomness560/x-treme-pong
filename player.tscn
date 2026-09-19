@@ -11,8 +11,8 @@ size = Vector2(50, 126)
 
 [node name="Player" type="CharacterBody2D" unique_id=1814723530]
 script = ExtResource("1_4flbx")
-speed = 1200.0
-responsiveness = 6000.0
+use_mouse = true
+speed = 1000.0
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1557076092]
 visible = false

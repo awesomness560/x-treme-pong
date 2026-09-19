@@ -5,12 +5,13 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qg41d"]
 size = Vector2(12, 114)
 
-[node name="AI" type="CharacterBody2D" unique_id=1543865057 node_paths=PackedStringArray("collision_shape")]
+[node name="AI" type="CharacterBody2D" unique_id=1543865057 node_paths=PackedStringArray("collision_shape", "debug_label")]
 script = ExtResource("1_c35dq")
 collision_shape = NodePath("CollisionShape2D")
 ball_radius = 15.0
 speed = 300.0
 responsiveness = 2000.0
+debug_label = NodePath("Debug/RichTextLabel")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1557076092]
 anchors_preset = 8
@@ -29,3 +30,14 @@ color = Color(0.24705882, 0.8156863, 1, 1)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1085590486]
 position = Vector2(0, 1)
 shape = SubResource("RectangleShape2D_qg41d")
+
+[node name="Debug" type="CanvasLayer" parent="." unique_id=345440815]
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Debug" unique_id=923674769]
+offset_left = 952.0
+offset_top = 5.0
+offset_right = 1121.0
+offset_bottom = 189.0
+bbcode_enabled = true
+fit_content = true
+scroll_active = false

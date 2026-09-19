@@ -2,7 +2,10 @@
 
 [ext_resource type="Shader" uid="uid://cmpoqiupjkvp1" path="res://Shaders/crt.gdshader" id="1_m6e0p"]
 [ext_resource type="Shader" uid="uid://ce1n0ftpw7x22" path="res://Shaders/profile.gdshader" id="2_27fn8"]
-[ext_resource type="Shader" uid="uid://boi77epguy0vf" path="res://Shaders/health_bar.gdshader" id="3_27fn8"]
+[ext_resource type="Shader" uid="uid://c1bu2q2fcckb5" path="res://Shaders/health_bar.gdshader" id="3_27fn8"]
+[ext_resource type="Shader" uid="uid://boi77epguy0vf" path="res://Shaders/hearts.gdshader" id="4_ibotj"]
+[ext_resource type="Script" uid="uid://d08ciqfgst382" path="res://boss_health_bar.gd" id="4_n5ude"]
+[ext_resource type="Shader" uid="uid://o0u2fgk5o2pv" path="res://Shaders/dotted_line.gdshader" id="4_nltto"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
 shader = ExtResource("1_m6e0p")
@@ -22,30 +25,42 @@ shader_parameter/border_color = Color(1, 1, 1, 1)
 shader_parameter/fill_color = Color(0, 0, 0, 0)
 shader_parameter/border_width = 0.0970000046075
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_nq5bd"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nltto"]
 shader = ExtResource("3_27fn8")
-shader_parameter/health = 0.78
-shader_parameter/trail = 1.0
-shader_parameter/width = 800.0
-shader_parameter/height = 20.0
-shader_parameter/health_color = Color(1.4369954, 0.27734017, 0.7798575, 0.7607843)
-shader_parameter/full_health_color = Color(1.572, 0.308, 0.852, 1)
-shader_parameter/low_health_color = Color(0.87165, 0.43797, -0.04402, 1)
-shader_parameter/low_health_threshold = 0.25
-shader_parameter/low_health_pulse_speed = 2.0
-shader_parameter/damaged_health_color = Color(1.0221677, 1.0221677, 1.0221677, 0.7921569)
-shader_parameter/healed_health_color = Color(0.87182, 0.98235, 0.90501, 1)
-shader_parameter/edge_color = Color(4, 4, 4, 1)
-shader_parameter/edge_pixels = 4.0
+shader_parameter/health = 1.0
+shader_parameter/segment_count = 10
+shader_parameter/break_low = -1
+shader_parameter/break_high = -1
+shader_parameter/break_progress = 0.0
+shader_parameter/base_color = Color(0.24705882, 0.8156863, 1, 1)
+shader_parameter/empty_dim = 0.12
+shader_parameter/shard_boost = 2.0
+shader_parameter/slant = 0.4
+shader_parameter/reverse = false
+shader_parameter/gap = 6.0
+shader_parameter/edge_softness = 1.0
+shader_parameter/shard_size = 14.0
+shader_parameter/crack_width = 1.5
+shader_parameter/burst_distance = 30.0
+shader_parameter/fall = 35.0
+shader_parameter/spin = 0.8
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nq5bd"]
+shader = ExtResource("4_ibotj")
+shader_parameter/progress = 1.0
+shader_parameter/fill_color = Color(0.8, 0.2, 0.2, 1)
 shader_parameter/background_color = Color(0.125, 0.125, 0.125, 1)
 shader_parameter/border_color = Color(0.125, 0.125, 0.125, 0.5)
-shader_parameter/border_pixels = 1.0
-shader_parameter/round_corners = false
-shader_parameter/skew_pixels = 10.0
-shader_parameter/top_quarter_modulate = Color(2, 2, 2, 1)
-shader_parameter/top_half_modulate = Color(1, 1, 1, 1)
-shader_parameter/bottom_half_modulate = Color(1, 1, 1, 1)
-shader_parameter/bottom_quarter_modulate = Color(1, 1, 1, 1)
+shader_parameter/border_thickness = 0.05
+shader_parameter/edge_softness = 0.01
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ibotj"]
+shader = ExtResource("4_nltto")
+shader_parameter/line_color = Color(1, 1, 1, 1)
+shader_parameter/thickness = 5.170000221825
+shader_parameter/dash_length = 25.8410011799475
+shader_parameter/gap_length = 14.0
+shader_parameter/softness = 1.0
 
 [node name="UI" type="CanvasLayer" unique_id=1984543490]
 
@@ -59,18 +74,68 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="ProfilePic" type="ColorRect" parent="." unique_id=677215545]
+[node name="PlayerProfilePic" type="ColorRect" parent="." unique_id=677215545]
 material = SubResource("ShaderMaterial_qg41d")
-offset_left = 44.000008
-offset_top = 4.0
-offset_right = 64.8809
-offset_bottom = 24.88086
+offset_left = 527.0
+offset_top = 5.0
+offset_right = 547.88086
+offset_bottom = 25.88086
 rotation = 0.7853982
 scale = Vector2(2.3594732, 2.3594732)
 
-[node name="HealthBar" type="ColorRect" parent="." unique_id=1257312253]
+[node name="BossHealth" type="ColorRect" parent="." unique_id=1986503525]
+material = SubResource("ShaderMaterial_nltto")
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 107.0
+offset_top = 13.0
+offset_right = 161.67322
+offset_bottom = 21.9003
+grow_horizontal = 2
+scale = Vector2(2.3594732, 2.3594732)
+pivot_offset_ratio = Vector2(0.5, 0.5)
+script = ExtResource("4_n5ude")
+
+[node name="Boss" type="ColorRect" parent="." unique_id=1613233898]
+material = SubResource("ShaderMaterial_qg41d")
+offset_left = 622.0
+offset_top = 5.0
+offset_right = 642.88086
+offset_bottom = 25.88086
+rotation = 0.7853982
+scale = Vector2(2.3594732, 2.3594732)
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1224830159]
+offset_left = 372.0
+offset_right = 500.0
+offset_bottom = 40.0
+
+[node name="Health" type="ColorRect" parent="HBoxContainer" unique_id=1257312253]
 material = SubResource("ShaderMaterial_nq5bd")
-offset_left = 73.0
-offset_top = 6.0
-offset_right = 233.0
-offset_bottom = 22.0
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+
+[node name="Health2" type="ColorRect" parent="HBoxContainer" unique_id=398274305]
+material = SubResource("ShaderMaterial_nq5bd")
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+
+[node name="Health3" type="ColorRect" parent="HBoxContainer" unique_id=154555716]
+material = SubResource("ShaderMaterial_nq5bd")
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+
+[node name="Dotted Line" type="ColorRect" parent="." unique_id=1740645886]
+material = SubResource("ShaderMaterial_ibotj")
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -411.5
+offset_right = 20.0
+offset_bottom = 411.5
+grow_horizontal = 2
+grow_vertical = 2

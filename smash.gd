@@ -62,13 +62,11 @@ func _physics_process(delta: float) -> void:
 	elif Input.is_action_pressed("charge_up"):
 		if is_animating():
 			return # Recovery: can't charge while a smash is still playing.
-		player.speed_scale = speed_slowdown
 		time_held = minf(time_held + delta, time_to_full)
 		set_charge(time_held / time_to_full)
 
 func _on_whiff_or_cancel() -> void:
 	time_held = 0.0
-	player.speed_scale = 1.0
 	animate_relax()
 
 func _on_smash() -> void:
@@ -82,13 +80,15 @@ func _on_smash() -> void:
 	var multiplier := perfect_multiplier if t <= perfect_window else smash_multiplier
 	if multiplier == perfect_multiplier:
 		_on_perfect()
+	else:
+		GameState.last_hit_perfect = false
 	GameState.ball.smash(lerpf(1.0, multiplier, power))
 
 	animate_smash(power)
 	time_held = 0.0
-	player.speed_scale = 1.0
 
 func _on_perfect():
+	GameState.last_hit_perfect = true
 	_do_hitstop()
 
 func _do_hitstop() -> void:

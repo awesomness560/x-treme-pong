@@ -6,7 +6,6 @@
 [ext_resource type="PackedScene" uid="uid://cub4xcf35fdp7" path="res://ball.tscn" id="3_h2yge"]
 [ext_resource type="PackedScene" uid="uid://caeq2d6x42jg5" path="res://ui.tscn" id="5_5vw27"]
 [ext_resource type="Shader" uid="uid://cq5vxewboysv4" path="res://Shaders/grid.gdshader" id="7_272bh"]
-[ext_resource type="Shader" uid="uid://o0u2fgk5o2pv" path="res://Shaders/dotted_line.gdshader" id="8_5vw27"]
 [ext_resource type="PackedScene" uid="uid://dyf6b555474er" path="res://border.tscn" id="9_kek77"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qg41d"]
@@ -33,14 +32,6 @@ shader_parameter/perspective = 0.35
 shader_parameter/vanish_right = true
 shader_parameter/depth_fade = 0.6
 shader_parameter/scroll_speed = 0.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_vbfgd"]
-shader = ExtResource("8_5vw27")
-shader_parameter/line_color = Color(1, 1, 1, 1)
-shader_parameter/thickness = 5.170000221825
-shader_parameter/dash_length = 25.8410011799475
-shader_parameter/gap_length = 14.0
-shader_parameter/softness = 1.0
 
 [node name="Main" type="Node2D" unique_id=410257257]
 
@@ -87,13 +78,6 @@ offset_top = -443.0
 offset_right = 778.0
 offset_bottom = 483.0
 mouse_filter = 2
-
-[node name="Dotted Line" type="ColorRect" parent="." unique_id=1037534832]
-material = SubResource("ShaderMaterial_vbfgd")
-offset_left = -23.0
-offset_top = -450.0
-offset_right = 17.0
-offset_bottom = 373.0
 
 [node name="Border" parent="." unique_id=1802476433 instance=ExtResource("9_kek77")]
 position = Vector2(581, 0)

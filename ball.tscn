@@ -7,8 +7,10 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_qg41d"]
 radius = 15.033297
 
-[node name="Ball" type="CharacterBody2D" unique_id=572260270]
+[node name="Ball" type="CharacterBody2D" unique_id=572260270 node_paths=PackedStringArray("sprite")]
 script = ExtResource("1_41u45")
+sprite = NodePath("Visuals")
+ignited_color = Color(1.5890393, 0.69354075, 0.2266023, 1)
 
 [node name="Visuals" type="Sprite2D" parent="." unique_id=1558599729 node_paths=PackedStringArray("ball")]
 modulate = Color(2.634323, 2.634323, 2.634323, 1)

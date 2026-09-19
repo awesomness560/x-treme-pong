@@ -1,136 +1,135 @@
-// By Amy Gilhespy.
-// I hereby dedicate this shader to the public domain.
-// https://creativecommons.org/publicdomain/zero/1.0/
-
 shader_type canvas_item;
 
-uniform float health = 0.5;
-uniform float trail = 0.6;
+group_uniforms Health;
+/// 0 = empty, 1 = full. Drains from the high end.
+uniform float health : hint_range(0.0, 1.0) = 1.0;
+uniform int segment_count : hint_range(1, 16) = 10;
 
-uniform float width = 800.0;
-uniform float height = 20.0;
 
-uniform vec4 health_color: source_color = vec4(-0.0313, 0.58229, 0.08121, 1.0);
-uniform vec4 full_health_color: source_color = vec4(-0.03854, 0.50523, 0.20425, 1.0);
-uniform vec4 low_health_color: source_color = vec4(0.87165, 0.43797, -0.04402, 1.0);
-uniform float low_health_threshold = 0.25;
-uniform float low_health_pulse_speed = 2.0;
-uniform vec4 damaged_health_color: source_color = vec4(1.02227, 0.36054, 0.36266, 1.0);
-uniform vec4 healed_health_color: source_color = vec4(0.87182, 0.98235, 0.90501, 1.0);
-uniform vec4 edge_color: source_color = vec4(vec3(4.0), 1.0);
-uniform float edge_pixels = 4.0;
-uniform vec4 background_color: source_color = vec4(vec3(0.125), 1.0);
-uniform vec4 border_color: source_color = vec4(vec3(0.125), 0.5);
-uniform float border_pixels = 1.0;
+group_uniforms Break;
+/// Range of segments currently shattering. -1 for none.
+uniform int break_low = -1;
+uniform int break_high = -1;
+/// 0 = intact, 1 = fully shattered.
+uniform float break_progress : hint_range(0.0, 1.0) = 0.0;
 
-uniform bool round_corners = false;
-uniform float skew_pixels = 10.0;
+group_uniforms Look;
+uniform vec4 base_color : source_color = vec4(0.9, 0.2, 0.95, 1.0);
+uniform float empty_dim : hint_range(0.0, 0.5) = 0.12;
+uniform float shard_boost : hint_range(1.0, 4.0) = 2.0;
+/// Shears the whole bar. Positive leans right at the top.
+uniform float slant : hint_range(-2.0, 2.0) = 0.4;
+/// Flips which end is full, so the bar drains from the other side.
+uniform bool reverse = false;
+uniform float gap : hint_range(0.0, 40.0) = 6.0;
+uniform float edge_softness : hint_range(0.0, 4.0) = 1.0;
 
-uniform vec4 top_quarter_modulate: source_color = vec4(vec3(2.0), 1.0);
-uniform vec4 top_half_modulate: source_color = vec4(vec3(1.0), 1.0);
-uniform vec4 bottom_half_modulate: source_color = vec4(vec3(1.0), 1.0);
-uniform vec4 bottom_quarter_modulate: source_color = vec4(vec3(0.375), 1.0);
+group_uniforms Damage;
+uniform float shard_size : hint_range(4.0, 60.0) = 14.0;
+uniform float crack_width : hint_range(0.0, 6.0) = 1.5;
+uniform float burst_distance : hint_range(0.0, 120.0) = 25.0;
+uniform float fall : hint_range(-200.0, 200.0) = 35.0;
+uniform float spin : hint_range(0.0, 3.0) = 0.8;
 
-vec4 get_health_color() {
-	if (health >= 1.0) {
-		return full_health_color;
-	} else if (health < low_health_threshold) {
-		return mix(health_color, low_health_color, sin(TIME * low_health_pulse_speed) * 0.5 + 0.5);
-	}
-	return health_color;
+vec2 hash2(vec2 p) {
+	float n = sin(dot(p, vec2(41.3, 289.1))) * 43758.5453;
+	return vec2(fract(n), fract(n * 1.618)) * 2.0 - 1.0;
 }
 
-vec4 get_border_color(vec2 uv, float hx) {
-	if (uv.x < -hx || uv.x > 1.0 + hx) {
-		return vec4(vec3(1.0), 0.0);
+/// Coverage of segment `index`, positive inside. A band in sheared space.
+/// `fill` trims it from the draining edge: 1 = whole, 0 = nothing.
+float segment_mask(vec2 p, vec2 lay, int index, float fill) {
+	float slot = lay.x / float(segment_count);
+	float left = float(index) * slot + gap * 0.5;
+	float right = left + slot - gap;
+	right = mix(left, right, clamp(fill, 0.0, 1.0));
+	float x_in = min(p.x - left, right - p.x);
+	return min(x_in, min(p.y, lay.y - p.y));
+}
+
+float crack_distance(vec2 p) {
+	vec2 cell = floor(p / shard_size);
+	float best = 1e9;
+	for (int dy = -1; dy <= 1; dy++) {
+		for (int dx = -1; dx <= 1; dx++) {
+			vec2 c = cell + vec2(float(dx), float(dy));
+			vec2 site = (c + 0.5 + hash2(c) * 0.35) * shard_size;
+			best = min(best, length(p - site));
+		}
 	}
-	return border_color;
+	return best;
 }
 
 void fragment() {
-	float aspect = width / height;
-	float horizontal_border_u = border_pixels / width;
-	float vertical_border_v = border_pixels / height;
-	float edge_width = edge_pixels / width;
-	vec2 uv0 = UV;
-	//vec2 px0 = vec2((uv0.x - 0.5) * width, (uv0.y - 0.5) * height);
-	float non_border_width = width - 2.0 * border_pixels - abs(skew_pixels);
-	float non_border_height = height - 2.0 * border_pixels;
-	float skew = skew_pixels >= 0.0 ? 1.0 - uv0.y : uv0.y;
-	vec2 uv = vec2(
-		(uv0.x - horizontal_border_u - skew * abs(skew_pixels) / non_border_width) / (1.0 - 2.0 * horizontal_border_u - abs(skew_pixels) / non_border_width),
-		(uv0.y - vertical_border_v) / (1.0 - 2.0 * vertical_border_v));
-	vec2 size = vec2(width, height);
-	uv = round(uv * size) / size;
-	vec4 color = vec4(vec3(1.0), 0.0);
-	bool is_background = false;
-	bool is_edge = false;
-	if (trail <= health) {
-		if (uv.x <= trail) {
-			color = get_health_color();
-			if (uv.x > health - edge_width) {
-				is_edge = true;
-			}
-		} else if (uv.x <= health) {
-			color = healed_health_color;
-			if (uv.x > health - edge_width) {
-				is_edge = true;
-			}
-		} else {
-			is_background = true;
-			color = background_color;
-		}
-	} else {
-		if (uv.x <= health) {
-			color = get_health_color();
-			if (uv.x > health - edge_width) {
-				is_edge = true;
-			}
-		} else if (uv.x <= trail) {
-			color = damaged_health_color;
-		} else {
-			is_background = true;
-			color = background_color;
-		}
+	vec2 size = 1.0 / max(abs(vec2(dFdx(UV.x), dFdy(UV.y))), vec2(1e-6));
+	vec2 raw = UV * size;
+
+	// Inset by exactly how far the shear displaces the top and bottom edges.
+	float margin = abs(slant) * size.y * 0.5;
+	vec2 lay = vec2(max(size.x - margin * 2.0, 1.0), size.y);
+
+	// Shear the whole bar, then optionally flip which end is full.
+	vec2 px = vec2(raw.x - slant * (raw.y - size.y * 0.5) - margin, raw.y);
+	if (reverse) {
+		px.x = lay.x - px.x;
 	}
-	if (!is_background) {
-		if (uv.y >= 0.5) {
-			color *= bottom_half_modulate;
-			if (uv.y >= 0.75) {
-				color *= bottom_quarter_modulate;
+
+	vec3 fill_rgb = base_color.rgb;
+	vec3 empty_rgb = base_color.rgb * empty_dim;
+	vec3 shard_rgb = base_color.rgb * shard_boost;
+
+	vec4 col = vec4(0.0);
+	float scaled = health * float(segment_count);
+
+	for (int i = 0; i < segment_count; i++) {
+		float fill = clamp(scaled - float(i), 0.0, 1.0);
+
+		// Dim socket, always the full segment shape.
+		float socket = smoothstep(-edge_softness, edge_softness,
+			segment_mask(px, lay, i, 1.0));
+		col = mix(col, vec4(empty_rgb, base_color.a), socket);
+
+		bool breaking = (i >= break_low) && (i <= break_high) && (break_progress > 0.0);
+		
+		if (!breaking) {
+			// Solid fill, trimmed to how much of this segment is left.
+			if (fill > 0.0) {
+				float m = smoothstep(-edge_softness, edge_softness,
+					segment_mask(px, lay, i, fill));
+				col = mix(col, vec4(fill_rgb, base_color.a), m);
 			}
-		} else {
-			color *= top_half_modulate;
-			if (uv.y < 0.25) {
-				color *= top_quarter_modulate;
-			}
+			continue;
 		}
+
+		// --- Shattering: the whole segment breaks apart ---
+		float p = clamp(break_progress, 0.0, 1.0);
+		if (p >= 1.0) {
+			continue;
+		}
+
+		vec2 cell = floor(px / shard_size);
+		vec2 rnd = hash2(cell + vec2(float(i) * 7.0));
+		vec2 drift = normalize(rnd + vec2(0.001)) * burst_distance * p;
+		drift.y += fall * p * p;
+		drift += rnd.yx * spin * shard_size * p;
+
+		vec2 src = px - drift;
+		if (floor(src / shard_size) != cell) {
+			continue;
+		}
+
+		float sm = smoothstep(-edge_softness, edge_softness,
+			segment_mask(src, lay, i, 1.0));
+		if (sm <= 0.0) {
+			continue;
+		}
+
+		float cd = crack_distance(src);
+		float cracked = smoothstep(0.0, crack_width, cd - shard_size * 0.5 * p);
+
+		vec3 shard = mix(fill_rgb, shard_rgb, p);
+		col = mix(col, vec4(shard, base_color.a), sm * cracked * (1.0 - p * p));
 	}
-	if (is_edge) {
-		color = edge_color;
-		if (round_corners) {
-			vec2 px = vec2((uv.x - 0.5) * non_border_width, (uv.y - 0.5) * non_border_height);
-			float r = 0.5 * non_border_height;
-			float y = px.y;
-			float x = sqrt(max(0.0, r * r - y * y));
-			if (px.x + non_border_width * 0.5 < r - x) {
-				color = get_border_color(uv, horizontal_border_u);
-			} else if (px.x > non_border_width * 0.5 - (r - x)) {
-				color = get_border_color(uv, horizontal_border_u);
-			}
-		}
-	} else if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
-		color = get_border_color(uv, horizontal_border_u);
-	} else if (round_corners) {
-		vec2 px = vec2((uv.x - 0.5) * non_border_width, (uv.y - 0.5) * non_border_height);
-		float r = 0.5 * non_border_height;
-		float y = px.y;
-		float x = sqrt(max(0.0, r * r - y * y));
-		if (px.x + non_border_width * 0.5 < r - x) {
-			color = get_border_color(uv, horizontal_border_u);
-		} else if (px.x > non_border_width * 0.5 - (r - x)) {
-			color = get_border_color(uv, horizontal_border_u);
-		}
-	}
-	COLOR *= color;
+
+	COLOR = col;
 }

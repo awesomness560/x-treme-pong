@@ -1,9 +1,12 @@
 [gd_scene format=3 uid="uid://dyf6b555474er"]
 
+[ext_resource type="Script" uid="uid://c6ky8qtlu8gor" path="res://border.gd" id="1_ujjr2"]
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qg41d"]
 size = Vector2(44, 890)
 
-[node name="Border" type="StaticBody2D" unique_id=1802476433]
+[node name="Border" type="StaticBody2D" unique_id=1802476433 groups=["Border"]]
+script = ExtResource("1_ujjr2")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=201100292]
 anchors_preset = 8

@@ -9,9 +9,10 @@ radius = 15.033297
 
 [node name="Ball" type="CharacterBody2D" unique_id=572260270 node_paths=PackedStringArray("sprite", "debug_label")]
 script = ExtResource("1_41u45")
-start_speed = 1000.0
-max_speed = 2000.0
-max_bounce_angle_deg = 45.0
+max_speed = 1800.0
+max_bounce_angle_deg = 40.0
+tap_speed_gain = 200.0
+tap_ceiling = 0.91
 sprite = NodePath("Visuals")
 ignited_color = Color(1.5890393, 0.69354075, 0.2266023, 1)
 debug_label = NodePath("CanvasLayer/RichTextLabel")

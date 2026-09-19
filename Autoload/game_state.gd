@@ -17,3 +17,5 @@ var boss_health : float = 1.0 :
 		boss_new_health.emit(value)
 
 var last_hit_perfect : bool = false
+var last_hit_was_smash := false
+var ball_ignitable : bool = false

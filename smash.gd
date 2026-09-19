@@ -1,19 +1,18 @@
 class_name PaddleFlex
 extends Line2D
 
-@export var player : Paddle
+@export var player: Paddle
 @export var length: float = 100.0
 @export_range(3, 32) var point_count: int = 7
 @export var facing: float = 1.0 # 1 = ball comes from the right, -1 = from the left
 
 @export_group("Logic")
-@export var time_to_full : float = 0.6
-@export var min_time_held : float = 0.15
+@export var time_to_full: float = 0.6
+@export var min_time_held: float = 0.15
 @export var perfect_window: float = 0.1 # seconds before contact
 @export var smash_window: float = 0.3
-@export var speed_slowdown : float = 0.7
-@export var smash_multiplier: float = 4
-@export var perfect_multiplier: float = 10
+## Vertical half-range the ball must arrive within to be hittable.
+@export var reach: float = 70.0
 
 @export_group("Wind Up")
 @export var max_bend: float = 12.0
@@ -32,11 +31,7 @@ extends Line2D
 @export var hitstop_scale: float = 0.05
 @export var hitstop_time: float = 0.5
 
-var time_held : float = 0.0
-var _hitstop_active := false
-
-#WARNING: If the ball enters here and dies this might fuck us over
-var ball_in_area : bool = false
+var time_held: float = 0.0
 
 var bend: float = 0.0:
 	set(value):
@@ -49,13 +44,16 @@ var shift: float = 0.0:
 		_update_points()
 
 var _tween: Tween
+var _hitstop_active := false
+var _pending_perfect := false
 
 func _ready() -> void:
 	_update_points()
+	GameState.ball.paddle_hit.connect(_on_paddle_hit)
 
 func _physics_process(delta: float) -> void:
 	if Input.is_action_just_released("charge_up"):
-		if time_held < min_time_held or not ball_in_area:
+		if time_held < min_time_held or not _in_vertical_reach():
 			_on_whiff_or_cancel()
 		else:
 			_on_smash()
@@ -65,8 +63,11 @@ func _physics_process(delta: float) -> void:
 		time_held = minf(time_held + delta, time_to_full)
 		set_charge(time_held / time_to_full)
 
+# --- Smash logic ---
+
 func _on_whiff_or_cancel() -> void:
 	time_held = 0.0
+	_pending_perfect = false
 	animate_relax()
 
 func _on_smash() -> void:
@@ -77,19 +78,21 @@ func _on_smash() -> void:
 		_on_whiff_or_cancel()
 		return
 
-	var multiplier := perfect_multiplier if t <= perfect_window else smash_multiplier
-	if multiplier == perfect_multiplier:
-		_on_perfect()
-	else:
-		GameState.last_hit_perfect = false
-	GameState.ball.smash(lerpf(1.0, multiplier, power))
+	var is_perfect := t <= perfect_window
+	GameState.last_hit_perfect = is_perfect
+	_pending_perfect = is_perfect
 
+	GameState.ball.smash(power, is_perfect)
 	animate_smash(power)
 	time_held = 0.0
 
-func _on_perfect():
-	GameState.last_hit_perfect = true
-	_do_hitstop()
+## Fires at actual contact, so the hitstop lands on the impact.
+func _on_paddle_hit(paddle: Node2D) -> void:
+	if paddle != player:
+		return
+	if _pending_perfect:
+		_pending_perfect = false
+		_do_hitstop()
 
 func _do_hitstop() -> void:
 	if _hitstop_active:
@@ -100,6 +103,28 @@ func _do_hitstop() -> void:
 	await get_tree().create_timer(hitstop_time * hitstop_scale).timeout
 	Engine.time_scale = 1.0
 	_hitstop_active = false
+
+## Time until the ball reaches the paddle, or -1 if it isn't incoming.
+func time_to_impact() -> float:
+	var ball := GameState.ball
+	var motion := ball.get_motion()
+	var gap := (ball.global_position.x - global_position.x) * facing
+
+	if gap < 0.0 or signf(motion.x) == facing:
+		return -1.0
+	return gap / absf(motion.x)
+
+## Is the ball going to arrive close enough vertically to be hittable?
+func _in_vertical_reach() -> bool:
+	var ball := GameState.ball
+	var t := time_to_impact()
+	if t < 0.0:
+		return false
+	# Where the ball will be when it arrives, not where it is now.
+	var arrival_y := ball.global_position.y + ball.get_motion().y * t
+	return absf(arrival_y - global_position.y) <= reach
+
+# --- Normalized control ---
 
 ## charge: 0 = flat, 1 = fully wound up. Cancels any running animation.
 func set_charge(charge: float) -> void:
@@ -180,21 +205,3 @@ func _update_points() -> void:
 		var x := (shift + bend * (1.0 - t * t)) * facing
 		new_points.append(Vector2(x, t * length * 0.5))
 	points = new_points
-
-## Time until the ball reaches the paddle, or -1 if it isn't incoming.
-func time_to_impact() -> float:
-	var ball := GameState.ball
-	var motion := ball.get_motion()
-	var gap := (ball.global_position.x - global_position.x) * facing
-
-	if gap < 0.0 or signf(motion.x) == facing:
-		return -1.0
-	return gap / absf(motion.x)
-
-func _on_hit_area_body_entered(body: Node2D) -> void:
-	if body is Ball:
-		ball_in_area = true
-
-func _on_hit_area_body_exited(body: Node2D) -> void:
-	if body is Ball:
-		ball_in_area = false

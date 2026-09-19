@@ -9,9 +9,7 @@ size = Vector2(12, 114)
 script = ExtResource("1_c35dq")
 collision_shape = NodePath("CollisionShape2D")
 ball_radius = 15.0
-speed = 300.0
-responsiveness = 2000.0
-skill = 0.861
+skill = 1.0
 debug_label = NodePath("Debug/RichTextLabel")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1557076092]

@@ -11,6 +11,7 @@ radius = 15.033297
 script = ExtResource("1_41u45")
 start_speed = 1000.0
 max_speed = 2000.0
+max_bounce_angle_deg = 45.0
 sprite = NodePath("Visuals")
 ignited_color = Color(1.5890393, 0.69354075, 0.2266023, 1)
 debug_label = NodePath("CanvasLayer/RichTextLabel")

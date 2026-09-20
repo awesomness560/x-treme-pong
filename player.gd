@@ -29,6 +29,11 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CONFINED_HIDDEN
 
 func _physics_process(delta: float) -> void:
+	if GameState.input_locked:
+		velocity = Vector2.ZERO
+		move_and_slide()
+		return
+	
 	if use_mouse:
 		_move_with_mouse(delta)
 	else:

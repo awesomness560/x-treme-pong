@@ -1,11 +1,42 @@
 [gd_scene format=3 uid="uid://cub4xcf35fdp7"]
 
 [ext_resource type="Script" uid="uid://c7oscyia2b6xk" path="res://ball.gd" id="1_41u45"]
-[ext_resource type="Texture2D" uid="uid://dck3moxykdiss" path="res://circle-256.png" id="1_x8fbi"]
+[ext_resource type="Texture2D" uid="uid://dck3moxykdiss" path="res://Assets/circle-256.png" id="1_x8fbi"]
 [ext_resource type="Script" uid="uid://cq4kjstuqxjql" path="res://ball_visuals.gd" id="3_ktgx5"]
+[ext_resource type="Script" uid="uid://cxmbqkwo3l44r" path="res://ult_ball_fx.gd" id="4_hgol0"]
+[ext_resource type="Texture2D" uid="uid://crbx4o5cu8h85" path="res://Assets/circle_05.png" id="5_n5601"]
+[ext_resource type="Shader" uid="uid://chlftkiybclip" path="res://Shaders/fire.gdshader" id="6_gchj4"]
+[ext_resource type="Script" uid="uid://cisf1y1tkqjx5" path="res://ball_flame_ignite.gd" id="7_01kih"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_qg41d"]
 radius = 15.033297
+
+[sub_resource type="Curve" id="Curve_n5601"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.14550266, 1), 0.0, 0.0, 0, 0, Vector2(0.6296296, 0.78070176), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="Gradient" id="Gradient_n5601"]
+offsets = PackedFloat32Array(0, 0.2037037, 0.8240741, 1)
+colors = PackedColorArray(0.92500794, 0.88069385, 0.88627905, 1, 2.1557593, 0.31831774, 0.7100566, 1, 0.8745098, 0.101960786, 0.26666668, 0.9098039, 0.8745098, 0.101960786, 0.26666668, 0)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nq5bd"]
+shader = ExtResource("6_gchj4")
+shader_parameter/flame_dir = Vector2(1, 0)
+shader_parameter/stretch = 0.0
+shader_parameter/stretch_amount = 3.5
+shader_parameter/stretch_narrow = 0.4
+shader_parameter/heat = 1.0
+shader_parameter/flame_color = Color(1, 0.45, 0.12, 1)
+shader_parameter/outer_brightness = 1.1
+shader_parameter/mid_brightness = 2.4
+shader_parameter/core_brightness = 5.0
+shader_parameter/core_whiteness = 0.55
+shader_parameter/mid_size = 0.68
+shader_parameter/core_size = 0.38
+shader_parameter/radius = 0.4
+shader_parameter/tongue_depth = 0.6
+shader_parameter/tongue_scale = 2.9290000916275
+shader_parameter/flow_speed = 5.1050002424875
 
 [node name="Ball" type="CharacterBody2D" unique_id=572260270 node_paths=PackedStringArray("sprite", "debug_label")]
 script = ExtResource("1_41u45")
@@ -14,7 +45,9 @@ max_bounce_angle_deg = 40.0
 tap_speed_gain = 200.0
 tap_ceiling = 0.91
 sprite = NodePath("Visuals")
-ignited_color = Color(1.5890393, 0.69354075, 0.2266023, 1)
+ignited_color = Color(2.8743412, 1.2845862, 0.44615394, 1)
+entrance_height = 600.0
+drop_overshoot = 5.0
 debug_label = NodePath("CanvasLayer/RichTextLabel")
 
 [node name="Visuals" type="Sprite2D" parent="." unique_id=1558599729 node_paths=PackedStringArray("ball")]
@@ -39,3 +72,36 @@ offset_bottom = 215.0
 grow_horizontal = 0
 fit_content = true
 scroll_active = false
+
+[node name="UltBallFX" type="Node2D" parent="." unique_id=1513597234]
+process_mode = 3
+script = ExtResource("4_hgol0")
+ult_color = Color(0.5122148, 1.1223162, 1.868793, 1)
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="." unique_id=2130380920]
+visible = false
+position = Vector2(0, 4)
+amount = 30
+texture = ExtResource("5_n5601")
+lifetime = 0.2
+lifetime_randomness = 0.2
+direction = Vector2(0, -1)
+spread = 25.0
+gravity = Vector2(0, -98)
+initial_velocity_min = 100.0
+initial_velocity_max = 200.0
+scale_amount_min = 0.15
+scale_amount_max = 0.25
+scale_amount_curve = SubResource("Curve_n5601")
+color_ramp = SubResource("Gradient_n5601")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=305910195 node_paths=PackedStringArray("ball")]
+visible = false
+material = SubResource("ShaderMaterial_nq5bd")
+offset_left = -104.00001
+offset_top = -26.0
+offset_right = -60.250008
+offset_bottom = 25.0
+scale = Vector2(3.200001, 1)
+script = ExtResource("7_01kih")
+ball = NodePath("..")

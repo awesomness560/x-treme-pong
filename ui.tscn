@@ -3,9 +3,14 @@
 [ext_resource type="Shader" uid="uid://cmpoqiupjkvp1" path="res://Shaders/crt.gdshader" id="1_m6e0p"]
 [ext_resource type="Shader" uid="uid://ce1n0ftpw7x22" path="res://Shaders/profile.gdshader" id="2_27fn8"]
 [ext_resource type="Shader" uid="uid://c1bu2q2fcckb5" path="res://Shaders/health_bar.gdshader" id="3_27fn8"]
-[ext_resource type="Shader" uid="uid://boi77epguy0vf" path="res://Shaders/hearts.gdshader" id="4_ibotj"]
 [ext_resource type="Script" uid="uid://d08ciqfgst382" path="res://boss_health_bar.gd" id="4_n5ude"]
 [ext_resource type="Shader" uid="uid://o0u2fgk5o2pv" path="res://Shaders/dotted_line.gdshader" id="4_nltto"]
+[ext_resource type="Script" uid="uid://cexx864usuyso" path="res://UI/health_manager_ui.gd" id="5_waa4j"]
+[ext_resource type="PackedScene" uid="uid://dkm7bkg6fe4im" path="res://UI/health.tscn" id="5_y4yjw"]
+[ext_resource type="Shader" uid="uid://4vh4gwu8sptm" path="res://Shaders/ult_bar.gdshader" id="8_waa4j"]
+[ext_resource type="Script" uid="uid://bytqf4b5ftts5" path="res://UI/ult_bar.gd" id="9_ok7cu"]
+[ext_resource type="Script" uid="uid://c0xnt8ne6jf72" path="res://UI/ult_cut_in.gd" id="10_irxef"]
+[ext_resource type="Shader" uid="uid://0rbff50wudlj" path="res://Shaders/ult_skew.gdshader" id="11_e2l4f"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
 shader = ExtResource("1_m6e0p")
@@ -45,15 +50,6 @@ shader_parameter/burst_distance = 30.0
 shader_parameter/fall = 35.0
 shader_parameter/spin = 0.8
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_nq5bd"]
-shader = ExtResource("4_ibotj")
-shader_parameter/progress = 1.0
-shader_parameter/fill_color = Color(0.8, 0.2, 0.2, 1)
-shader_parameter/background_color = Color(0.125, 0.125, 0.125, 1)
-shader_parameter/border_color = Color(0.125, 0.125, 0.125, 0.5)
-shader_parameter/border_thickness = 0.05
-shader_parameter/edge_softness = 0.01
-
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ibotj"]
 shader = ExtResource("4_nltto")
 shader_parameter/line_color = Color(1, 1, 1, 1)
@@ -61,6 +57,52 @@ shader_parameter/thickness = 5.170000221825
 shader_parameter/dash_length = 25.8410011799475
 shader_parameter/gap_length = 14.0
 shader_parameter/softness = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_y4yjw"]
+shader = ExtResource("8_waa4j")
+shader_parameter/fill = 0.30000001425
+shader_parameter/rate = 0.0
+shader_parameter/flash = 0.0
+shader_parameter/sweep = 0.0
+shader_parameter/armed = 0.0
+shader_parameter/fill_color = Color(1, 0.25, 0.75, 1)
+shader_parameter/armed_color = Color(1, 0.8, 0.2, 1)
+shader_parameter/empty_color = Color(0.08, 0.04, 0.09, 1)
+shader_parameter/base_brightness = 0.9
+shader_parameter/anticipation_boost = 1.2
+shader_parameter/anticipation_from = 0.75
+shader_parameter/slant = 0.5500001211250001
+shader_parameter/edge_softness = 1.0
+shader_parameter/border_thickness = 1.5
+shader_parameter/border_color = Color(0.6, 0.3, 0.55, 1)
+shader_parameter/border_armed_boost = 1.6
+shader_parameter/border_padding = 1.0
+shader_parameter/spark_width = 14.0
+shader_parameter/spark_rate_width = 26.0
+shader_parameter/spark_jitter = 0.6
+shader_parameter/spark_speed = 22.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nq5bd"]
+shader = ExtResource("11_e2l4f")
+shader_parameter/slant = 0.5100002142250002
+shader_parameter/thickness = 0.55
+shader_parameter/band_length = 0.9
+shader_parameter/band_offset = 0.0
+shader_parameter/length_offset = 0.0
+shader_parameter/edge_softness = 1.0
+shader_parameter/border_color = Color(1, 0.3, 0.8, 1)
+shader_parameter/border_brightness = 2.6
+shader_parameter/inner_color = Color(0.04, 0.02, 0.06, 1)
+shader_parameter/inner_darkening = 0.5
+shader_parameter/border_width = 6.0
+shader_parameter/border_glow = 55.0
+shader_parameter/border_glow_strength = 0.55
+shader_parameter/lines_opacity = 0.7
+shader_parameter/line_spacing = 26.0
+shader_parameter/line_width = 2.5
+shader_parameter/line_reach = 0.32
+shader_parameter/line_variation = 0.7
+shader_parameter/line_scroll = 0.0
 
 [node name="UI" type="CanvasLayer" unique_id=1984543490]
 
@@ -106,24 +148,18 @@ offset_bottom = 25.88086
 rotation = 0.7853982
 scale = Vector2(2.3594732, 2.3594732)
 
-[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1224830159]
-offset_left = 372.0
+[node name="Health" type="HBoxContainer" parent="." unique_id=1224830159]
+offset_left = 105.0
 offset_right = 500.0
 offset_bottom = 40.0
+alignment = 2
+script = ExtResource("5_waa4j")
+heart_scene = ExtResource("5_y4yjw")
 
-[node name="Health" type="ColorRect" parent="HBoxContainer" unique_id=1257312253]
-material = SubResource("ShaderMaterial_nq5bd")
-custom_minimum_size = Vector2(40, 40)
+[node name="Health" parent="Health" unique_id=231002280 instance=ExtResource("5_y4yjw")]
 layout_mode = 2
 
-[node name="Health2" type="ColorRect" parent="HBoxContainer" unique_id=398274305]
-material = SubResource("ShaderMaterial_nq5bd")
-custom_minimum_size = Vector2(40, 40)
-layout_mode = 2
-
-[node name="Health3" type="ColorRect" parent="HBoxContainer" unique_id=154555716]
-material = SubResource("ShaderMaterial_nq5bd")
-custom_minimum_size = Vector2(40, 40)
+[node name="Health2" parent="Health" unique_id=1733697502 instance=ExtResource("5_y4yjw")]
 layout_mode = 2
 
 [node name="Dotted Line" type="ColorRect" parent="." unique_id=1740645886]
@@ -139,3 +175,30 @@ offset_right = 20.0
 offset_bottom = 411.5
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="UltBar" type="ColorRect" parent="." unique_id=1975831323]
+material = SubResource("ShaderMaterial_y4yjw")
+offset_left = 354.0
+offset_top = 58.0
+offset_right = 511.0
+offset_bottom = 70.0
+script = ExtResource("9_ok7cu")
+
+[node name="UltCutIn" type="Control" parent="." unique_id=797888507 node_paths=PackedStringArray("panel")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("10_irxef")
+panel = NodePath("Character Profile")
+
+[node name="Character Profile" type="ColorRect" parent="UltCutIn" unique_id=991882260]
+material = SubResource("ShaderMaterial_nq5bd")
+layout_mode = 0
+offset_left = 41.0
+offset_top = -296.0
+offset_right = 1138.0
+offset_bottom = 1003.0

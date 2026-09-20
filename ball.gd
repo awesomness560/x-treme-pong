@@ -6,6 +6,8 @@ signal border_hit(border: Node2D, damage: float)
 signal ignited_changed(ignited: bool)
 signal ignitable_changed(ignitable: bool)
 
+signal border_broken(border: Node2D, damage: float)
+
 @export_group("Speed")
 @export var start_speed: float = 400.0
 ## The reachability ceiling. Set from paddle speed vs court height.
@@ -50,9 +52,38 @@ signal ignitable_changed(ignitable: bool)
 ## Seconds after a border hit during which the enemy paddle can't touch the ball.
 @export var border_grace_time: float = 0.35
 
+@export_group("Serve Entrance")
+## Where the ball rests before serving. Defaults to wherever it starts.
+@export var serve_position: Vector2 = Vector2.ZERO
+## Use the ball's own starting position instead of serve_position.
+@export var use_start_position: bool = true
+## How far above the serve point the ball waits.
+@export var entrance_height: float = 300.0
+## Time for the drop in.
+@export var drop_time: float = 0.55
+## How far past the serve point it overshoots, in pixels.
+@export var drop_overshoot: float = 60.0
+@export var settle_time: float = 0.35
+## Pause at the serve point before the ball launches.
+@export var serve_delay: float = 0.4
+
 @export_group("Debug")
 @export var debug_label: Control
 @export var debug_enabled: bool = true
+
+@export_group("Ultimate")
+## Speed the ult launches at. Bypasses max_speed deliberately.
+@export var ult_speed: float = 3000.0
+## Damage the break deals, ignoring the normal formula.
+@export var ult_break_damage: float = 4.0
+## The collision layer the boss's paddle is on.
+@export var enemy_layer: int = 3
+var ult_mode := false
+var _enemy_layer_saved := 0
+
+var in_play := false
+var _serve_point := Vector2.ZERO
+var _entrance_tween: Tween
 
 var ignited := false
 var ignitable := false
@@ -73,7 +104,81 @@ func _ready() -> void:
 	GameState.ball = self
 	if sprite:
 		_base_color = sprite.modulate
+	_serve_point = global_position if use_start_position else serve_position
+	reset_to_entrance()
+
+## Arm the ult. The ball keeps drifting; the slow time scale does the rest.
+func begin_ult() -> void:
+	ult_mode = true
+	_pending_factor = 0.0
+	_last_event = "ult charging"
+	_set_enemy_solid(false)
+
+## Release along whatever direction it drifted to.
+func launch_ult() -> void:
+	_speed = ult_speed
+	GameState.last_hit_was_smash = true
+	_last_event = "ULT LAUNCH"
+
+func cancel_ult() -> void:
+	ult_mode = false
+	_set_enemy_solid(true)
+
+## Turns the boss's paddle intangible so the ult passes through it.
+func _set_enemy_solid(solid: bool) -> void:
+	var enemy := GameState.enemy
+	if enemy == null:
+		return
+	if solid:
+		if _enemy_layer_saved != 0:
+			enemy.collision_layer = _enemy_layer_saved
+			_enemy_layer_saved = 0
+	else:
+		if _enemy_layer_saved == 0:
+			_enemy_layer_saved = enemy.collision_layer
+			enemy.collision_layer = 0
+
+## Kill all motion and park the ball above the serve point.
+func reset_to_entrance() -> void:
+	_kill_entrance()
+	in_play = false
+	_speed = 0.0
+	_direction = Vector2.ZERO
+	_pending_factor = 0.0
+	_grace_timer = 0.0
+	_hit_count = 0
+	_last_event = "waiting"
+
+	GameState.last_hit_was_smash = false
+	GameState.last_hit_perfect = false
+	_set_ignited(false)
+	_update_ignitable()
+
+	global_position = _serve_point - Vector2(0.0, entrance_height)
+
+## Drop in, settle, pause, then serve.
+func enter_and_serve() -> void:
+	_kill_entrance()
+
+	_entrance_tween = create_tween()
+	# Fall in, overshooting past the serve point.
+	_entrance_tween.tween_property(self, "global_position",
+		_serve_point + Vector2(0.0, drop_overshoot), drop_time) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	# Spring back up to rest.
+	_entrance_tween.tween_property(self, "global_position", _serve_point, settle_time) \
+		.set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	# Beat, then go.
+	_entrance_tween.tween_interval(serve_delay)
+	_entrance_tween.tween_callback(_serve)
+
+func _serve() -> void:
+	in_play = true
 	launch()
+
+func _kill_entrance() -> void:
+	if _entrance_tween and _entrance_tween.is_valid():
+		_entrance_tween.kill()
 
 func launch() -> void:
 	_speed = start_speed
@@ -87,6 +192,7 @@ func launch() -> void:
 	GameState.last_hit_perfect = false
 	_set_ignited(false)
 	_update_ignitable()
+	paddle_hit.emit(null)
 
 ## Queue a smash. `power` is charge 0 to 1. Applied at contact.
 func smash(power: float, is_perfect: bool) -> void:
@@ -163,6 +269,8 @@ func _apply_ignition_color() -> void:
 # --- Movement ---
 
 func _physics_process(delta: float) -> void:
+	if not in_play:
+		return
 	_grace_timer = maxf(_grace_timer - delta, 0.0)
 
 	var collision := move_and_collide(_direction * _speed * delta)
@@ -185,8 +293,11 @@ func _physics_process(delta: float) -> void:
 # --- Border ---
 
 func _hit_border(border: Node2D) -> void:
-	var damage := _compute_damage()
+	if ult_mode:
+		_break_border(border)
+		return
 
+	var damage := _compute_damage()
 	_speed = start_speed
 	_pending_factor = 0.0
 	_grace_timer = border_grace_time
@@ -197,6 +308,24 @@ func _hit_border(border: Node2D) -> void:
 
 	GameState.take_damage.emit(damage)
 	border_hit.emit(border, damage)
+
+## The ult's payload: fixed damage, its own signal.
+func _break_border(border: Node2D) -> void:
+	ult_mode = false
+	set_collision_mask_value(enemy_layer, true)
+
+	_speed = start_speed
+	_pending_factor = 0.0
+	_grace_timer = border_grace_time
+	_last_event = "ULT BREAK (%.2f dmg)" % ult_break_damage
+	_set_ignited(false)
+	_update_ignitable()
+	GameState.last_hit_was_smash = false
+	GameState.last_hit_perfect = false
+
+	GameState.take_damage.emit(ult_break_damage)
+	GameState.ult_impact.emit()
+	border_broken.emit(border, ult_break_damage)
 
 func _compute_damage() -> float:
 	# Exponential from base to max across the speed range, then capped.

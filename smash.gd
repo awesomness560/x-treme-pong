@@ -11,13 +11,23 @@ extends Line2D
 @export var min_time_held: float = 0.15
 @export var perfect_window: float = 0.1 # seconds before contact
 @export var smash_window: float = 0.3
+## Smash window while armed. Wider, so firing the ult is easier to land.
+@export var armed_smash_window: float = 0.5
 ## Vertical half-range the ball must arrive within to be hittable.
 @export var reach: float = 70.0
 
 @export_group("Wind Up")
 @export var max_bend: float = 12.0
 @export var max_pullback: float = 4.0
-@export var glow_color: Color = Color(2.5, 2.5, 2.5)
+@export var charge_brightness: float = 2.5
+
+@export_group("Armed")
+@export var armed_color: Color = Color(2.2, 1.6, 0.45)
+## Beats per second. Match the ult bar's pulse so they read as one system.
+@export var armed_pulse_speed: float = 1.6
+## How far the gold dims at the bottom of the beat.
+@export_range(0.0, 1.0) var armed_pulse_depth: float = 0.35
+@export var armed_fade_time: float = 0.25
 
 @export_group("Smash Animation")
 @export var smash_bend: float = 14.0
@@ -46,12 +56,21 @@ var shift: float = 0.0:
 var _tween: Tween
 var _hitstop_active := false
 var _pending_perfect := false
+## 0 = normal, 1 = fully gold. Tweened on arming so the change eases in.
+var _armed_blend := 0.0
+var _armed_tween: Tween
+var _pulse_phase := 0.0
 
 func _ready() -> void:
 	_update_points()
 	GameState.ball.paddle_hit.connect(_on_paddle_hit)
+	GameState.ult_armed_changed.connect(_on_armed_changed)
+	_armed_blend = 1.0 if GameState.ult_armed else 0.0
+	self_modulate = _rest_color()
 
 func _physics_process(delta: float) -> void:
+	_pulse_phase += delta * armed_pulse_speed * TAU
+
 	if Input.is_action_just_released("charge_up"):
 		if time_held < min_time_held or not _in_vertical_reach():
 			_on_whiff_or_cancel()
@@ -62,6 +81,28 @@ func _physics_process(delta: float) -> void:
 			return # Recovery: can't charge while a smash is still playing.
 		time_held = minf(time_held + delta, time_to_full)
 		set_charge(time_held / time_to_full)
+	elif not is_animating():
+		# Idle: hold the resting colour, pulsing gold when armed.
+		self_modulate = _rest_color()
+
+# --- Colour ---
+
+## The paddle's colour when it isn't charging: white, or a pulsing gold.
+func _rest_color() -> Color:
+	if _armed_blend <= 0.0:
+		return Color.WHITE
+	var beat := 0.5 + 0.5 * sin(_pulse_phase)
+	var gold := Color.WHITE.lerp(armed_color, 1.0 - armed_pulse_depth * (1.0 - beat))
+	return Color.WHITE.lerp(gold, _armed_blend)
+
+func _on_armed_changed(armed: bool) -> void:
+	if _armed_tween and _armed_tween.is_valid():
+		_armed_tween.kill()
+	if armed:
+		_pulse_phase = 0.0
+	_armed_tween = create_tween()
+	_armed_tween.tween_property(self, "_armed_blend", 1.0 if armed else 0.0,
+		armed_fade_time)
 
 # --- Smash logic ---
 
@@ -71,13 +112,21 @@ func _on_whiff_or_cancel() -> void:
 	animate_relax()
 
 func _on_smash() -> void:
-	var power := time_held / time_to_full
 	var t := time_to_impact()
+	var armed := GameState.ult_armed
+	var window := armed_smash_window if armed else smash_window
 
-	if t < 0.0 or t > smash_window:
+	if t < 0.0 or t > window:
 		_on_whiff_or_cancel()
 		return
 
+	# Armed: the ult replaces the smash entirely, at full strength.
+	if armed and GameState.ult_runner and GameState.ult_runner.activate():
+		animate_smash(1.0)
+		time_held = 0.0
+		return
+
+	var power := time_held / time_to_full
 	var is_perfect := t <= perfect_window
 	GameState.last_hit_perfect = is_perfect
 	_pending_perfect = is_perfect
@@ -95,7 +144,7 @@ func _on_paddle_hit(paddle: Node2D) -> void:
 		_do_hitstop()
 
 func _do_hitstop() -> void:
-	if _hitstop_active:
+	if _hitstop_active or GameState.ult_active:
 		return
 	_hitstop_active = true
 	Engine.time_scale = hitstop_scale
@@ -132,7 +181,11 @@ func set_charge(charge: float) -> void:
 	charge = clampf(charge, 0.0, 1.0)
 	bend = -charge * max_bend
 	shift = -charge * max_pullback
-	self_modulate = Color.WHITE.lerp(glow_color, charge)
+	# Brighten the resting colour rather than fading toward white.
+	var base := _rest_color()
+	var lit := base * lerpf(1.0, charge_brightness, charge)
+	lit.a = base.a
+	self_modulate = lit
 
 ## amount: -1 = fully wound back, 0 = flat, 1 = fully lunged forward.
 func set_flex(amount: float) -> void:
@@ -151,11 +204,13 @@ func set_flex(amount: float) -> void:
 func animate_charge(charge: float, time: float) -> void:
 	kill_animation()
 	charge = clampf(charge, 0.0, 1.0)
+	var base := _rest_color()
+	var lit := base * lerpf(1.0, charge_brightness, charge)
+	lit.a = base.a
 	_tween = create_tween()
 	_add_step(-charge * max_bend, -charge * max_pullback, time,
 		Tween.TRANS_SINE, Tween.EASE_OUT)
-	_tween.parallel().tween_property(self, "self_modulate",
-		Color.WHITE.lerp(glow_color, charge), time)
+	_tween.parallel().tween_property(self, "self_modulate", lit, time)
 
 ## Snap forward, rebound the other way, then settle flat. Scaled by `power` (0 to 1).
 func animate_smash(power: float = 1.0) -> void:
@@ -196,7 +251,7 @@ func _add_step(to_bend: float, to_shift: float, time: float,
 		.set_trans(trans).set_ease(ease_type)
 
 func _fade_glow(time: float) -> void:
-	_tween.parallel().tween_property(self, "self_modulate", Color.WHITE, time)
+	_tween.parallel().tween_property(self, "self_modulate", _rest_color(), time)
 
 func _update_points() -> void:
 	var new_points := PackedVector2Array()

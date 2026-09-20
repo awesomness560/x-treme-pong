@@ -6,13 +6,18 @@
 [ext_resource type="PackedScene" uid="uid://cub4xcf35fdp7" path="res://ball.tscn" id="3_h2yge"]
 [ext_resource type="PackedScene" uid="uid://caeq2d6x42jg5" path="res://ui.tscn" id="5_5vw27"]
 [ext_resource type="Shader" uid="uid://cq5vxewboysv4" path="res://Shaders/grid.gdshader" id="7_272bh"]
+[ext_resource type="Script" uid="uid://ilpq0yuvk4tj" path="res://Scripts/player_lose.gd" id="8_5vw27"]
+[ext_resource type="Script" uid="uid://cs6o2bpgry0ow" path="res://round_manager.gd" id="9_4c57u"]
 [ext_resource type="PackedScene" uid="uid://dyf6b555474er" path="res://border.tscn" id="9_kek77"]
+[ext_resource type="Script" uid="uid://bvo70dtp8hc30" path="res://ult_charge.gd" id="10_4c57u"]
+[ext_resource type="Script" uid="uid://cu2a8xie0t1mm" path="res://ult_runner.gd" id="11_efxa6"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qg41d"]
 size = Vector2(1262, 62)
 
 [sub_resource type="Environment" id="Environment_qg41d"]
 background_mode = 3
+background_canvas_max_layer = 2
 glow_enabled = true
 glow_intensity = 1.4
 glow_bloom = 0.51
@@ -32,6 +37,9 @@ shader_parameter/perspective = 0.35
 shader_parameter/vanish_right = true
 shader_parameter/depth_fade = 0.6
 shader_parameter/scroll_speed = 0.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_nq5bd"]
+size = Vector2(204, 824)
 
 [node name="Main" type="Node2D" unique_id=410257257]
 
@@ -81,3 +89,30 @@ mouse_filter = 2
 
 [node name="Border" parent="." unique_id=1802476433 instance=ExtResource("9_kek77")]
 position = Vector2(581, 0)
+
+[node name="PlayerLose" type="Area2D" parent="." unique_id=1198427317]
+position = Vector2(-876, 1)
+script = ExtResource("8_5vw27")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerLose" unique_id=516099297]
+position = Vector2(154, -1)
+shape = SubResource("RectangleShape2D_nq5bd")
+
+[node name="RoundManager" type="Node2D" parent="." unique_id=33873125 node_paths=PackedStringArray("round_wait_time")]
+script = ExtResource("9_4c57u")
+round_wait_time = NodePath("RoundWaitTime")
+
+[node name="RoundWaitTime" type="Timer" parent="RoundManager" unique_id=1359118842]
+one_shot = true
+
+[node name="UltCharge" type="Node" parent="." unique_id=1439744857]
+script = ExtResource("10_4c57u")
+max_charge = 1.0
+
+[node name="UltRunner" type="Node" parent="UltCharge" unique_id=941953470 node_paths=PackedStringArray("charge")]
+process_mode = 3
+script = ExtResource("11_efxa6")
+charge = NodePath("..")
+cut_in_time = 0.8
+
+[connection signal="body_entered" from="PlayerLose" to="PlayerLose" method="_on_body_entered"]

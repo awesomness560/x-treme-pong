@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://dkm7bkg6fe4im"]
+
+[ext_resource type="Shader" uid="uid://boi77epguy0vf" path="res://Shaders/hearts.gdshader" id="1_e03g0"]
+[ext_resource type="Script" uid="uid://dvpdu0f0ojfe2" path="res://UI/health.gd" id="2_ru2go"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nq5bd"]
+shader = ExtResource("1_e03g0")
+shader_parameter/progress = 1.0
+shader_parameter/fill_color = Color(0.8, 0.2, 0.2, 1)
+shader_parameter/background_color = Color(0.125, 0.125, 0.125, 1)
+shader_parameter/border_color = Color(0.125, 0.125, 0.125, 0.5)
+shader_parameter/border_thickness = 0.05
+shader_parameter/edge_softness = 0.01
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_qg41d"]
+particle_flag_disable_z = true
+direction = Vector3(0, -1, 0)
+spread = 180.0
+initial_velocity_min = 40.0
+initial_velocity_max = 90.0
+gravity = Vector3(0, -30, 0)
+damping_min = 20.0
+damping_max = 40.0
+scale_min = 3.0
+scale_max = 4.0
+color = Color(0.9721194, 0.44838065, 0.51118934, 1)
+
+[node name="Health" type="ColorRect" unique_id=231002280 node_paths=PackedStringArray("particles")]
+material = SubResource("ShaderMaterial_nq5bd")
+custom_minimum_size = Vector2(40, 40)
+script = ExtResource("2_ru2go")
+particles = NodePath("GPUParticles2D")
+fade_time = 0.5
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="." unique_id=1012973061]
+z_index = 1
+position = Vector2(20, 20)
+emitting = false
+amount = 12
+lifetime = 0.5
+one_shot = true
+explosiveness = 0.9
+process_material = SubResource("ParticleProcessMaterial_qg41d")

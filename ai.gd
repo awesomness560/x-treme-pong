@@ -7,6 +7,8 @@ enum State { RECOVER, REACT, TRACK }
 @export var opponent: Node2D
 @export var collision_shape: CollisionShape2D
 @export var ball_radius: float = 8.0
+@export var visuals : ColorRect
+@export var death_particles: CPUParticles2D
 
 @export_group("Timing")
 @export var reaction_delay: float = 0.15
@@ -91,6 +93,13 @@ func _ready() -> void:
 	_locked_x = global_position.x
 	ball.paddle_hit.connect(_on_paddle_hit)
 	GameState.take_damage.connect(_on_border_damaged)
+	GameState.boss_dead.connect(_on_death)
+
+func _on_death():
+	visuals.hide()
+	death_particles.emitting = true
+	await death_particles.finished
+	queue_free()
 
 # --- The roll ---
 

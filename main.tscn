@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://dsyix1rmurfo6" path="res://ai.tscn" id="1_7mycd"]
 [ext_resource type="PackedScene" uid="uid://um742cw0df5j" path="res://player.tscn" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://1tp7vl5f1cn0" path="res://wall.gd" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://r53upc3mwudj" path="res://camera.gd" id="3_dg77c"]
 [ext_resource type="PackedScene" uid="uid://cub4xcf35fdp7" path="res://ball.tscn" id="3_h2yge"]
 [ext_resource type="PackedScene" uid="uid://caeq2d6x42jg5" path="res://ui.tscn" id="5_5vw27"]
 [ext_resource type="Shader" uid="uid://cq5vxewboysv4" path="res://Shaders/grid.gdshader" id="7_272bh"]
@@ -50,6 +51,8 @@ position = Vector2(536, -2)
 position = Vector2(-552, 2)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1969608290]
+script = ExtResource("3_dg77c")
+max_offset = Vector2(30, 30)
 
 [node name="WallBottom" type="StaticBody2D" parent="." unique_id=236074755 node_paths=PackedStringArray("collision_shape")]
 script = ExtResource("2_0xm2m")

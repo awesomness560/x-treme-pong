@@ -150,6 +150,7 @@ func _do_hitstop() -> void:
 	Engine.time_scale = hitstop_scale
 	# Timers run on scaled time, so scale the wait to get real seconds.
 	await get_tree().create_timer(hitstop_time * hitstop_scale).timeout
+	GameState.camera_shook.emit(0.9)
 	Engine.time_scale = 1.0
 	_hitstop_active = false
 

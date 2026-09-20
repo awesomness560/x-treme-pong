@@ -55,6 +55,7 @@ func _run() -> void:
 
 	# --- Phase 3: launch. The ball and the FX own the rest. ---
 	Engine.time_scale = 1.0
+	GameState.camera_shook.emit(1.3)
 	GameState.input_locked = false
 	if GameState.ball:
 		GameState.ball.launch_ult()

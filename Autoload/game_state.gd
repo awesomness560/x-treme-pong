@@ -1,8 +1,12 @@
 extends Node
 
+signal camera_shook(trauma_amount : float)
+
 signal boss_new_health(health : float)
 signal take_damage(amount : float)
 signal boss_dead
+
+signal next_round
 
 signal ult_gained(amount: float, kind: GainKind)
 signal ult_armed_changed(armed: bool)

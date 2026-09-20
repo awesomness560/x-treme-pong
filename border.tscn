@@ -7,7 +7,6 @@ size = Vector2(44, 890)
 
 [node name="Border" type="StaticBody2D" unique_id=1802476433 groups=["Border"]]
 script = ExtResource("1_ujjr2")
-starting_health = 40.0
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=201100292]
 anchors_preset = 8

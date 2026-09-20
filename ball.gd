@@ -76,10 +76,11 @@ signal border_broken(border: Node2D, damage: float)
 @export var ult_speed: float = 3000.0
 ## Damage the break deals, ignoring the normal formula.
 @export var ult_break_damage: float = 4.0
-## The collision layer the boss's paddle is on.
-@export var enemy_layer: int = 3
 var ult_mode := false
 var _enemy_layer_saved := 0
+## True after a border break, until the grace timer runs out and the boss
+## paddle is safe to re-solidify without catching the ball still inside it.
+var _enemy_resolidify_pending := false
 
 var in_play := false
 var _serve_point := Vector2.ZERO
@@ -272,6 +273,9 @@ func _physics_process(delta: float) -> void:
 	if not in_play:
 		return
 	_grace_timer = maxf(_grace_timer - delta, 0.0)
+	if _enemy_resolidify_pending and _grace_timer <= 0.0:
+		_enemy_resolidify_pending = false
+		_set_enemy_solid(true)
 
 	var collision := move_and_collide(_direction * _speed * delta)
 	if collision == null:
@@ -312,7 +316,7 @@ func _hit_border(border: Node2D) -> void:
 ## The ult's payload: fixed damage, its own signal.
 func _break_border(border: Node2D) -> void:
 	ult_mode = false
-	set_collision_mask_value(enemy_layer, true)
+	_enemy_resolidify_pending = true
 
 	_speed = start_speed
 	_pending_factor = 0.0

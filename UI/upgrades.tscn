@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://ccah3pdwf4pxa"]
+
+[ext_resource type="Script" uid="uid://dukn0mhen787w" path="res://UI/upgrades_ui.gd" id="1_2y0ah"]
+[ext_resource type="PackedScene" uid="uid://doj05s6byqtv3" path="res://UI/upgrade_card.tscn" id="1_bv2nw"]
+
+[node name="Upgrades" type="HBoxContainer" unique_id=872509346]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 63.0
+offset_top = -187.0
+offset_right = -63.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 20
+script = ExtResource("1_2y0ah")
+
+[node name="PanelContainer2" parent="." unique_id=279540626 instance=ExtResource("1_bv2nw")]
+layout_mode = 2
+
+[node name="PanelContainer3" parent="." unique_id=1178590919 instance=ExtResource("1_bv2nw")]
+layout_mode = 2
+upgrade_name = "Quick recovery"
+rarity = 1
+catagory = 1
+description = "Recover from a swing 20% faster"
+
+[node name="PanelContainer" parent="." unique_id=669631356 instance=ExtResource("1_bv2nw")]
+layout_mode = 2
+upgrade_name = "Combustion"
+rarity = 2
+description = "Igniting the ball damages the border instantly"

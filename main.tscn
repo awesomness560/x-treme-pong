@@ -107,12 +107,11 @@ one_shot = true
 
 [node name="UltCharge" type="Node" parent="." unique_id=1439744857]
 script = ExtResource("10_4c57u")
-max_charge = 1.0
+max_charge = 30.0
 
-[node name="UltRunner" type="Node" parent="UltCharge" unique_id=941953470 node_paths=PackedStringArray("charge")]
+[node name="UltRunner" type="Node" parent="UltCharge" unique_id=941953470]
 process_mode = 3
 script = ExtResource("11_efxa6")
-charge = NodePath("..")
 cut_in_time = 0.8
 
 [connection signal="body_entered" from="PlayerLose" to="PlayerLose" method="_on_body_entered"]

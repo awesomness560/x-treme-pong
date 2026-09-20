@@ -22,6 +22,9 @@ var input_locked := false
 enum GainKind { SMASH, BORDER, IGNITION, DAMAGE_TAKEN, REFUND }
 enum Character { PINK, BLUE, GREEN }
 
+enum UPGRADE_RARITY { COMMON, RARE, LEGENDARY }
+enum UPGRADE_CATAGORY { HEAT, STRIKE, ENDURANCE, ULTIMATE, HEAL}
+
 var character := Character.PINK
 
 signal player_health_changed
@@ -51,7 +54,10 @@ var ult_armed := false
 ## Charge per second right now, smoothed. Drives the edge spark.
 var ult_rate := 0.0
 
-var player_health = 3 : 
+var player_health = 3 :
 	set (value):
 		player_health = value
 		player_health_changed.emit()
+
+func _scale_round() -> void:
+	pass

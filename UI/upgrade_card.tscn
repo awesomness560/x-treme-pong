@@ -1,0 +1,79 @@
+[gd_scene format=3 uid="uid://doj05s6byqtv3"]
+
+[ext_resource type="FontFile" uid="uid://dnmyx3m1s3qcm" path="res://Assets/ChakraPetch-Medium.ttf" id="1_frmbi"]
+[ext_resource type="Script" uid="uid://d2vlvc1hwbvcd" path="res://UI/upgrade_card.gd" id="1_k3svc"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_akokd"]
+bg_color = Color(0.64405143, 0.6452253, 0.63501924, 0.18431373)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[sub_resource type="FontVariation" id="FontVariation_k3svc"]
+base_font = ExtResource("1_frmbi")
+spacing_glyph = 2
+
+[node name="PanelContainer" type="PanelContainer" unique_id=279540626 node_paths=PackedStringArray("catagory_label", "rarity_label", "name_label", "description_label")]
+offset_right = 436.0
+offset_bottom = 199.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_akokd")
+script = ExtResource("1_k3svc")
+upgrade_name = "Momentum"
+description = "Taps add 20% more speed to the rally"
+catagory_label = NodePath("MarginContainer/VBoxContainer/Top/Catagory")
+rarity_label = NodePath("MarginContainer/VBoxContainer/Top/Rarity")
+name_label = NodePath("MarginContainer/VBoxContainer/Name")
+description_label = NodePath("MarginContainer/VBoxContainer/Description")
+legendary_color = Color(1.3704442, 0.7271156, 0.15033828, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1278967589]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=706938685]
+layout_mode = 2
+theme_override_constants/separation = 7
+
+[node name="Top" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1955995688]
+layout_mode = 2
+
+[node name="Catagory" type="Label" parent="MarginContainer/VBoxContainer/Top" unique_id=419569455]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.76872903, 0.768729, 0.768729, 1)
+theme_override_fonts/font = SubResource("FontVariation_k3svc")
+theme_override_font_sizes/font_size = 15
+text = "HEAT"
+
+[node name="Control" type="Control" parent="MarginContainer/VBoxContainer/Top" unique_id=1506495826]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Rarity" type="Label" parent="MarginContainer/VBoxContainer/Top" unique_id=1939883920]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.76872903, 0.768729, 0.768729, 1)
+theme_override_fonts/font = SubResource("FontVariation_k3svc")
+theme_override_font_sizes/font_size = 15
+text = "COMMON"
+
+[node name="Control2" type="Control" parent="MarginContainer/VBoxContainer" unique_id=19760497]
+layout_mode = 2
+
+[node name="Name" type="Label" parent="MarginContainer/VBoxContainer" unique_id=866696177]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_frmbi")
+theme_override_font_sizes/font_size = 26
+text = "Momentum"
+
+[node name="Description" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1777826055]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.76872903, 0.768729, 0.768729, 1)
+theme_override_fonts/font = ExtResource("1_frmbi")
+theme_override_font_sizes/font_size = 20
+text = "Taps add 20% more speed to the rally"
+autowrap_mode = 2

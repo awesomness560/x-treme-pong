@@ -5,29 +5,29 @@ extends Node
 
 @export_group("Speed Brightness")
 ## Low-pass cutoff at zero speed ratio — how muffled the rally sounds at rest.
-@export var muffled_cutoff_hz : float = 900.0
+@export var muffled_cutoff_hz : float = 1400.0
 ## Cutoff once the ball is ignited or at max speed — fully open.
 @export var bright_cutoff_hz : float = 20000.0
 ## Volume added at full speed, on top of the bus's base volume.
-@export var speed_volume_bonus_db : float = 2.0
+@export var speed_volume_bonus_db : float = 1.2
 ## Smoothing on the speed-tracked cutoff, so it doesn't jitter every frame.
 @export var speed_smoothing : float = 6.0
 
 @export_group("Ignition")
 ## Extra volume kick on top of the speed bonus while the ball is ignited.
-@export var ignition_volume_bonus_db : float = 2.0
+@export var ignition_volume_bonus_db : float = 1.0
 ## How fast the cutoff sweeps fully open the instant the ball ignites.
 @export var ignition_sweep_time : float = 0.15
 
 @export_group("Hit Ducking")
 ## Floor the low-pass drops to on a hard duck (perfects, border hits).
-@export var hit_duck_cutoff_hz : float = 300.0
+@export var hit_duck_cutoff_hz : float = 900.0
 ## Volume reduction at full duck strength (perfects, border hits).
-@export var hit_duck_volume_db : float = 24.0
-@export var perfect_duck_recovery_time : float = 0.3
-@export var border_hit_duck_recovery_time : float = 0.35
+@export var hit_duck_volume_db : float = 8.0
+@export var perfect_duck_recovery_time : float = 0.25
+@export var border_hit_duck_recovery_time : float = 0.3
 ## Smashes only duck partway, and recover faster. 0 = no duck, 1 = full cut.
-@export_range(0.0, 1.0) var smash_duck_strength : float = 0.45
+@export_range(0.0, 1.0) var smash_duck_strength : float = 0.25
 @export var smash_duck_recovery_time : float = 0.15
 
 @export_group("Damage Muffle")
@@ -35,11 +35,14 @@ extends Node
 @export var damage_muffle_recovery_time : float = 0.5
 
 @export_group("Ultimate")
-## How quickly silence lands when the ult starts, and how quickly it slams
-## back once the ult impacts. Real time — ignores the ult's own slow-mo.
-@export var ult_silence_time : float = 0.05
-@export var ult_slam_time : float = 0.05
-@export var ult_silence_volume_db : float = -80.0
+## How quickly the duck lands when the ult starts, and how quickly it opens
+## back up on impact. Real time — ignores the ult's own slow-mo.
+@export var ult_duck_time : float = 0.08
+@export var ult_recover_time : float = 0.08
+## The low-pass does most of the "quieter" work here on purpose.
+@export var ult_cutoff_hz : float = 500.0
+## Kept modest — this is a duck, not a mute.
+@export var ult_volume_db : float = 6.0
 
 var _bus_index := -1
 var _lowpass : AudioEffectLowPassFilter
@@ -53,8 +56,8 @@ var _ignited := false
 var _hit_duck := 0.0
 ## 0..1, tweened. 1 = fully muffled. Driven by taking damage.
 var _damage_duck := 0.0
-## 0..1, tweened. 1 = fully silent. Driven by the ultimate.
-var _ult_mute := 0.0
+## 0..1, tweened. 1 = fully ducked (not silent). Driven by the ultimate.
+var _ult_duck := 0.0
 
 var _hit_tween : Tween
 var _damage_tween : Tween
@@ -117,10 +120,10 @@ func _on_ignited_changed(ignited: bool) -> void:
 		_sweep_open()
 
 func _on_ult_started(_character: GameState.Character) -> void:
-	_tween_ult_mute(1.0, ult_silence_time)
+	_tween_ult_duck(1.0, ult_duck_time)
 
 func _on_ult_impact() -> void:
-	_tween_ult_mute(0.0, ult_slam_time)
+	_tween_ult_duck(0.0, ult_recover_time)
 
 func _on_player_damaged() -> void:
 	_duck_damage(1.0, damage_muffle_recovery_time)
@@ -152,12 +155,12 @@ func _sweep_open() -> void:
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	_sweep_tween.tween_callback(func(): _sweeping = false)
 
-func _tween_ult_mute(target: float, time: float) -> void:
+func _tween_ult_duck(target: float, time: float) -> void:
 	if _ult_tween and _ult_tween.is_valid():
 		_ult_tween.kill()
 	_ult_tween = create_tween()
 	_ult_tween.set_ignore_time_scale(true)
-	_ult_tween.tween_property(self, "_ult_mute", target, time) \
+	_ult_tween.tween_property(self, "_ult_duck", target, time) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 # --- Push to the bus ---
@@ -168,6 +171,7 @@ func _push() -> void:
 
 	var cutoff := minf(_speed_cutoff, lerpf(bright_cutoff_hz, hit_duck_cutoff_hz, _hit_duck))
 	cutoff = minf(cutoff, lerpf(bright_cutoff_hz, damage_muffle_cutoff_hz, _damage_duck))
+	cutoff = minf(cutoff, lerpf(bright_cutoff_hz, ult_cutoff_hz, _ult_duck))
 	if _lowpass:
 		_lowpass.cutoff_hz = cutoff
 
@@ -175,5 +179,5 @@ func _push() -> void:
 	if _ignited:
 		volume += ignition_volume_bonus_db
 	volume -= hit_duck_volume_db * _hit_duck
-	volume = lerpf(volume, ult_silence_volume_db, _ult_mute)
+	volume -= ult_volume_db * _ult_duck
 	AudioServer.set_bus_volume_db(_bus_index, volume)

@@ -13,6 +13,7 @@
 [ext_resource type="Script" uid="uid://c0xnt8ne6jf72" path="res://UI/ult_cut_in.gd" id="10_irxef"]
 [ext_resource type="Shader" uid="uid://0rbff50wudlj" path="res://Shaders/ult_skew.gdshader" id="11_e2l4f"]
 [ext_resource type="PackedScene" uid="uid://ccah3pdwf4pxa" path="res://UI/upgrades.tscn" id="12_n5rqp"]
+[ext_resource type="PackedScene" uid="uid://w8vk4e3hnylh" path="res://UI/pause_menu.tscn" id="14_cxd00"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
 shader = ExtResource("1_m6e0p")
@@ -210,3 +211,5 @@ offset_bottom = 1003.0
 [node name="UpgradesMenu" parent="." unique_id=309390656 instance=ExtResource("12_n5rqp")]
 offset_top = 397.0
 offset_bottom = -35.0
+
+[node name="PauseMenu" parent="." unique_id=1625804187 instance=ExtResource("14_cxd00")]

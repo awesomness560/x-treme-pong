@@ -7,6 +7,10 @@ signal take_damage(amount : float)
 signal boss_dead
 
 signal next_round
+signal start_round
+## Fired mid-transition, while the dotted line is off-screen and nothing is
+## visible — the moment to actually spawn the next boss/border.
+signal spawn_encounter
 
 signal ult_gained(amount: float, kind: GainKind)
 signal ult_armed_changed(armed: bool)
@@ -29,6 +33,27 @@ enum Character { PINK, BLUE, GREEN }
 enum UPGRADE_RARITY { COMMON, RARE, LEGENDARY }
 enum UPGRADE_CATAGORY { HEAT, STRIKE, ENDURANCE, ULTIMATE, HEAL}
 
+## Lightning may join later; the AI/border color-switch and round manager's
+## gimmick spawn both key off this, so adding one there is all a 4th needs.
+enum BossType { FIRE, EARTH, WATER }
+
+## The AI and border scripts react to this themselves to recolor.
+signal boss_type_changed(type: BossType)
+var boss_type := BossType.FIRE :
+	set(value):
+		boss_type = value
+		boss_type_changed.emit(value)
+
+## No-repeat shuffle bag: every boss type is drawn once, in a random order,
+## before any of them can come up again.
+var _boss_bag : Array[BossType] = []
+
+func roll_next_boss_type() -> BossType:
+	if _boss_bag.is_empty():
+		_boss_bag.assign(BossType.values())
+		_boss_bag.shuffle()
+	return _boss_bag.pop_back()
+
 var character := Character.PINK
 
 signal player_health_changed
@@ -39,6 +64,8 @@ var enemy: EnemyPaddle
 var ult_runner: UltRunner
 var ult_charge_manager: UltCharge
 var cut_in : UltCutIn
+var ui : UI
+var border : Border
 
 var combo_multiplier : float = 1.0
 var ball_ignited : bool = false

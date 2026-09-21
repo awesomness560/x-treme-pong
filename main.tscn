@@ -104,6 +104,8 @@ shape = SubResource("RectangleShape2D_nq5bd")
 [node name="RoundManager" type="Node2D" parent="." unique_id=33873125 node_paths=PackedStringArray("round_wait_time")]
 script = ExtResource("9_4c57u")
 round_wait_time = NodePath("RoundWaitTime")
+boss_scene = ExtResource("1_7mycd")
+border_scene = ExtResource("9_kek77")
 
 [node name="RoundWaitTime" type="Timer" parent="RoundManager" unique_id=1359118842]
 one_shot = true

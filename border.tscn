@@ -1,14 +1,46 @@
 [gd_scene format=3 uid="uid://dyf6b555474er"]
 
 [ext_resource type="Script" uid="uid://c6ky8qtlu8gor" path="res://border.gd" id="1_ujjr2"]
+[ext_resource type="Shader" uid="uid://esb7n4xyubjp" path="res://Shaders/border.gdshader" id="2_x3n4t"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ujjr2"]
+shader = ExtResource("2_x3n4t")
+shader_parameter/damage = 1.0
+shader_parameter/shatter = 0.0
+shader_parameter/hit_flash = 0.0
+shader_parameter/hit_point = Vector2(0.5, 0.5)
+shader_parameter/flash_radius = 220.0
+shader_parameter/body_color = Color(0.07450981, 0.2901961, 0.41960785, 1)
+shader_parameter/crack_color = Color(0.07741361, 1.1184411, 1.5055057, 1)
+shader_parameter/crack_brightness = 2.05200007372
+shader_parameter/edge_color = Color(0.08407407, 1.1728721, 1.4813142, 1)
+shader_parameter/outline_width = 3.0
+shader_parameter/line_count = 40
+shader_parameter/line_width = 1.8
+shader_parameter/line_glow = 9.0
+shader_parameter/line_glow_strength = 0.22
+shader_parameter/line_fade = 0.12
+shader_parameter/min_length = 0.25
+shader_parameter/max_length = 0.9
+shader_parameter/angle_spread = 55.0
+shader_parameter/crookedness = 7.0
+shader_parameter/kink_frequency = 2.5
+shader_parameter/seed = 7.0
+shader_parameter/cell_size = 48.0
+shader_parameter/burst_distance = 120.0
+shader_parameter/burst_push = 90.0
+shader_parameter/burst_fall = 60.0
+shader_parameter/burst_spin = 0.8
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qg41d"]
 size = Vector2(44, 890)
 
-[node name="Border" type="StaticBody2D" unique_id=1802476433 groups=["Border"]]
+[node name="Border" type="StaticBody2D" unique_id=1802476433 node_paths=PackedStringArray("visuals") groups=["Border"]]
 script = ExtResource("1_ujjr2")
+visuals = NodePath("Visuals")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=201100292]
+[node name="Visuals" type="ColorRect" parent="." unique_id=201100292]
+material = SubResource("ShaderMaterial_ujjr2")
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -23,4 +55,5 @@ grow_vertical = 2
 color = Color(0.07450981, 0.2901961, 0.41960785, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=880557064]
+visible = false
 shape = SubResource("RectangleShape2D_qg41d")

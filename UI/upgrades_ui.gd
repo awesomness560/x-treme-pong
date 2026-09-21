@@ -43,3 +43,4 @@ func _on_card_chosen(script: Script) -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CONFINED_HIDDEN
 	hide()
 	closed.emit()
+	GameState.start_round.emit()

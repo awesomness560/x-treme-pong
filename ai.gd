@@ -10,6 +10,11 @@ enum State { RECOVER, REACT, TRACK }
 @export var visuals : ColorRect
 @export var death_particles: CPUParticles2D
 
+@export_group("Boss Colors")
+@export var fire_color : Color = Color(1.3, 0.35, 0.15)
+@export var earth_color : Color = Color(0.55, 0.85, 0.25)
+@export var water_color : Color = Color(0.25, 0.75, 1.3)
+
 @export_group("Timing")
 @export var reaction_delay: float = 0.15
 ## Drift speed back toward the resting spot between shots.
@@ -60,6 +65,10 @@ enum State { RECOVER, REACT, TRACK }
 @export var debug_label: Control
 @export var debug_enabled: bool = true
 
+## While true, the AI ignores its own positioning — set true while the round
+## manager is sliding a freshly spawned boss into place via tween.
+var entering := false
+
 var last_miss_chance := 0.0
 var will_miss := false
 
@@ -88,18 +97,41 @@ func _ready() -> void:
 	GameState.enemy = self
 	ball = GameState.ball
 	opponent = GameState.player
-	_clean_y = global_position.y
-	_recover_from_y = global_position.y
-	_locked_x = global_position.x
+	# If we're mid-entrance, our position is about to be tweened elsewhere —
+	# settle() will cache the real resting spot once that finishes instead.
+	if not entering:
+		_locked_x = global_position.x
+		_clean_y = global_position.y
+		_recover_from_y = global_position.y
 	ball.paddle_hit.connect(_on_paddle_hit)
 	GameState.take_damage.connect(_on_border_damaged)
 	GameState.boss_dead.connect(_on_death)
+	GameState.boss_type_changed.connect(_apply_boss_color)
+	_apply_boss_color(GameState.boss_type)
 
 func _on_death():
 	visuals.hide()
 	death_particles.emitting = true
 	await death_particles.finished
 	queue_free()
+
+## Call once the boss has been moved into its resting spot (e.g. after a
+## spawn-in tween finishes), to sync its cached home position and let its
+## own positioning resume.
+func settle() -> void:
+	_locked_x = global_position.x
+	_clean_y = global_position.y
+	_recover_from_y = global_position.y
+	entering = false
+
+func _apply_boss_color(type: GameState.BossType) -> void:
+	match type:
+		GameState.BossType.FIRE:
+			visuals.color = fire_color
+		GameState.BossType.EARTH:
+			visuals.color = earth_color
+		GameState.BossType.WATER:
+			visuals.color = water_color
 
 # --- The roll ---
 
@@ -188,6 +220,8 @@ func _on_border_damaged(_amount: float) -> void:
 # --- Movement: a scheduled path, so arrival is exact ---
 
 func _physics_process(delta: float) -> void:
+	if entering:
+		return
 	var court := _get_court_rect()
 	var half := _half_size().y
 	var approaching := _is_ball_approaching()

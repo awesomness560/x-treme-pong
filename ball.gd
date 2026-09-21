@@ -264,6 +264,7 @@ func _apply_ignition_color() -> void:
 	if _color_tween and _color_tween.is_valid():
 		_color_tween.kill()
 	var target := ignited_color if ignited else _base_color
+	GameState.camera_shook.emit(1.4)
 	_color_tween = create_tween()
 	_color_tween.tween_property(sprite, "modulate", target, color_fade_time)
 

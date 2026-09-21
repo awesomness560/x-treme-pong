@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://caeq2d6x42jg5"]
 
+[ext_resource type="Script" uid="uid://clxjaedtnutmu" path="res://Scripts/ui.gd" id="1_gs482"]
 [ext_resource type="Shader" uid="uid://cmpoqiupjkvp1" path="res://Shaders/crt.gdshader" id="1_m6e0p"]
 [ext_resource type="Shader" uid="uid://ce1n0ftpw7x22" path="res://Shaders/profile.gdshader" id="2_27fn8"]
 [ext_resource type="Shader" uid="uid://c1bu2q2fcckb5" path="res://Shaders/health_bar.gdshader" id="3_27fn8"]
@@ -105,7 +106,9 @@ shader_parameter/line_reach = 0.32
 shader_parameter/line_variation = 0.7
 shader_parameter/line_scroll = 0.0
 
-[node name="UI" type="CanvasLayer" unique_id=1984543490]
+[node name="UI" type="CanvasLayer" unique_id=1984543490 node_paths=PackedStringArray("dotted_line")]
+script = ExtResource("1_gs482")
+dotted_line = NodePath("Dotted Line")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=798438053]
 z_index = 1

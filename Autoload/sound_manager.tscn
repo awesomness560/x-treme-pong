@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://bsu56thitdbsu"]
+
+[ext_resource type="Script" uid="uid://ced6h0nlqgvnd" path="res://Autoload/sound_manager.gd" id="1_p10nr"]
+[ext_resource type="AudioStream" uid="uid://bqyidh81irdii" path="res://Assets/Checking Manifest Menu.mp3" id="2_rrqsv"]
+[ext_resource type="AudioStream" uid="uid://df22jgbyahlfk" path="res://Assets/DOS-88 - Far away End Run.mp3" id="3_5e5gd"]
+[ext_resource type="AudioStream" uid="uid://b35cwcllllbcf" path="res://Assets/Earth - DOS-88 - Automatav2.mp3" id="4_c4fgj"]
+[ext_resource type="AudioStream" uid="uid://cuyejwdbgj0c2" path="res://Assets/Fire - DOS-88 - City Stomper.mp3" id="5_1svlr"]
+[ext_resource type="AudioStream" uid="uid://d36mtto8m3sy" path="res://Assets/Water - Billy's Sacrifice.mp3" id="6_v4f60"]
+
+[sub_resource type="AudioStreamInteractive" id="AudioStreamInteractive_rrqsv"]
+clip_count = 5
+clip_0/name = &"menu"
+clip_0/stream = ExtResource("2_rrqsv")
+clip_0/auto_advance = 0
+clip_1/name = &"end"
+clip_1/stream = ExtResource("3_5e5gd")
+clip_1/auto_advance = 0
+clip_2/name = &"earth"
+clip_2/stream = ExtResource("4_c4fgj")
+clip_2/auto_advance = 0
+clip_3/name = &"fire"
+clip_3/stream = ExtResource("5_1svlr")
+clip_3/auto_advance = 0
+clip_4/name = &"water"
+clip_4/stream = ExtResource("6_v4f60")
+clip_4/auto_advance = 0
+
+[node name="SoundManager" type="Node" unique_id=286336569 node_paths=PackedStringArray("music")]
+script = ExtResource("1_p10nr")
+music = NodePath("Music")
+
+[node name="Music" type="AudioStreamPlayer" parent="." unique_id=1365949397]
+stream = SubResource("AudioStreamInteractive_rrqsv")
+autoplay = true
+bus = &"Music"

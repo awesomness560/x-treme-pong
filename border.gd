@@ -20,6 +20,10 @@ class_name Border
 
 var health : float
 
+## Set the instant health first drops to 0, so no further hit can restart
+## the shatter tween or re-fire boss_dead while this one is still dying.
+var _dying := false
+
 var _damage := 0.0
 var _shatter := 0.0
 var _flash := 0.0
@@ -52,8 +56,11 @@ func _apply_boss_color(type: GameState.BossType) -> void:
 			mat.set_shader_parameter("edge_color", water_edge_color)
 
 func _take_damage(amount : float):
+	if _dying:
+		return
 	health -= amount
 	if health <= 0.0:
+		_dying = true
 		GameState.boss_dead.emit()
 	##Death check
 	GameState.boss_new_health.emit(health / starting_health)

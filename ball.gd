@@ -103,6 +103,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	GameState.ball = self
+	SoundManager.bind_ball(self)
 	if sprite:
 		_base_color = sprite.modulate
 	_serve_point = global_position if use_start_position else serve_position

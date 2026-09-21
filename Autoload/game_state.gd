@@ -57,6 +57,9 @@ func roll_next_boss_type() -> BossType:
 var character := Character.PINK
 
 signal player_health_changed
+## Fires only on an actual hit (not on healing) — take_damage above is the
+## boss/border's damage signal, this one is the player's.
+signal player_damaged
 
 var ball: Ball
 var player: Paddle

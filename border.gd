@@ -36,6 +36,9 @@ func _ready() -> void:
 	GameState.take_damage.connect(_take_damage)
 	GameState.boss_type_changed.connect(_apply_boss_color)
 	_apply_boss_color(GameState.boss_type)
+	# Announce full health so the health bar actually refills — otherwise it
+	# just sits wherever the last boss left it until this one takes a hit.
+	GameState.boss_new_health.emit(health / starting_health)
 
 func _apply_boss_color(type: GameState.BossType) -> void:
 	var mat := visuals.material as ShaderMaterial

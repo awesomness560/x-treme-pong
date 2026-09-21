@@ -36,10 +36,68 @@ const COMMON_MUTED_COLOR := Color(0.6, 0.6, 0.6)
 ## this (luminance stripped out below) instead of a rarity color.
 const PADDLE_COLOR := Color(1.572, 0.308, 0.852)
 
+@export_group("Animation")
+## How far below its slot the card starts before sliding up into place.
+@export var entrance_drop : float = 220.0
+@export var entrance_time : float = 0.45
+## Extra delay per stagger step — the caller passes its own index in.
+@export var entrance_stagger : float = 0.08
+@export var hover_scale : float = 1.08
+@export var hover_time : float = 0.12
+
+## The container-assigned slot position. The container owns `position`
+## directly, so animation drives this offset on top of it instead — that
+## way nothing fights the container's own layout pass.
+var _base_position := Vector2.ZERO
+var offset_position := Vector2.ZERO :
+	set(value):
+		offset_position = value
+		position = _base_position + offset_position
+
+var _entrance_tween : Tween
+var _hover_tween : Tween
+
 func _ready() -> void:
 	_apply_content()
 	_apply_theme()
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	mouse_entered.connect(_on_mouse_entered)
+	mouse_exited.connect(_on_mouse_exited)
+	# Hidden until enter() positions us — otherwise we'd flash at our final
+	# spot for a frame before jumping down to start the animation.
+	modulate.a = 0.0
+
+## Call once every card in the row exists and the container has had a full
+## frame to settle on final positions — capturing this any earlier (e.g. per
+## card, right after its own _ready()) risks grabbing a stale slot, since
+## the container reflows everyone's x as later siblings are still being added.
+func enter(index: int) -> void:
+	_base_position = position
+	pivot_offset = size * 0.5
+	offset_position = Vector2(0.0, entrance_drop)
+	modulate.a = 1.0
+
+	if _entrance_tween and _entrance_tween.is_valid():
+		_entrance_tween.kill()
+	_entrance_tween = create_tween()
+	_entrance_tween.tween_property(self, "offset_position", Vector2.ZERO, entrance_time) \
+		.set_delay(index * entrance_stagger) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+func _on_mouse_entered() -> void:
+	_tween_scale(Vector2.ONE * hover_scale)
+
+func _on_mouse_exited() -> void:
+	_tween_scale(Vector2.ONE)
+
+## Scale isn't container-managed, so this can just be tweened directly —
+## no offset trick needed here, unlike position.
+func _tween_scale(target: Vector2) -> void:
+	if _hover_tween and _hover_tween.is_valid():
+		_hover_tween.kill()
+	_hover_tween = create_tween()
+	_hover_tween.tween_property(self, "scale", target, hover_time) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed \

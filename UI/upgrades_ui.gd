@@ -28,6 +28,12 @@ func open() -> void:
 
 	show()
 
+	# One full frame so the container settles on final slots for the whole
+	# row before any card captures its position — see the note on enter().
+	await get_tree().process_frame
+	for i in get_child_count():
+		get_child(i).enter(i)
+
 func _add_card(script: Script) -> void:
 	var card := CARD_SCENE.instantiate()
 	card.upgrade_script = script

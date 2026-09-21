@@ -54,6 +54,7 @@ text = "HEAT"
 [node name="Control" type="Control" parent="MarginContainer/VBoxContainer/Top" unique_id=1506495826]
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 1
 
 [node name="Rarity" type="Label" parent="MarginContainer/VBoxContainer/Top" unique_id=1939883920]
 layout_mode = 2

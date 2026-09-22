@@ -295,6 +295,7 @@ func _physics_process(delta: float) -> void:
 		_bounce_off_paddle(collision)
 	else:
 		_direction = _direction.bounce(normal)
+		SoundManager.play_pong()
 
 # --- Border ---
 
@@ -382,6 +383,7 @@ func _bounce_off_paddle(collision: KinematicCollision2D) -> void:
 	_hit_count += 1
 	_update_ignitable()
 	paddle_hit.emit(collider)
+	SoundManager.play_pong(0.5)
 
 ## Taps escalate up to the ceiling, then hold. Never slows a fast ball.
 func _tap_speed() -> float:

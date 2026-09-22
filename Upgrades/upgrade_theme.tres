@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="UpgradeTheme" format=3 uid="uid://e5c7y868v862"]
+
+[ext_resource type="Script" uid="uid://d33xt1bsam0jx" path="res://UI/upgrade_theme.gd" id="1_o35k5"]
+
+[resource]
+script = ExtResource("1_o35k5")
+legendary_color = Color(1.5257139, 0.77949834, 0.09791545, 1)

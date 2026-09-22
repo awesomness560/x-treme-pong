@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://u8e705t0yf4b"]
+
+[ext_resource type="FontFile" uid="uid://dnmyx3m1s3qcm" path="res://Assets/ChakraPetch-Medium.ttf" id="1_c3ol6"]
+[ext_resource type="Script" uid="uid://dkdgu8t6l27ue" path="res://UI/upgrade_badge.gd" id="1_g4nag"]
+[ext_resource type="Resource" uid="uid://e5c7y868v862" path="res://Upgrades/upgrade_theme.tres" id="2_xivl0"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b4srr"]
+bg_color = Color(0.64405143, 0.6452253, 0.63501924, 0.18431373)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[node name="UpgradeBadge" type="PanelContainer" unique_id=1427734960 node_paths=PackedStringArray("name_label")]
+offset_right = 91.0
+offset_bottom = 30.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_b4srr")
+script = ExtResource("1_g4nag")
+name_label = NodePath("MarginContainer/Name")
+upgrade_theme = ExtResource("2_xivl0")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1796458751]
+layout_mode = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="Name" type="Label" parent="MarginContainer" unique_id=1653633519]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_c3ol6")
+theme_override_font_sizes/font_size = 16
+text = "Momentum"

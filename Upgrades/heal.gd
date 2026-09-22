@@ -8,6 +8,7 @@ const DISPLAY_NAME := "Second Wind"
 const DESCRIPTION := "Restore 1 HP."
 const CATEGORY := GameState.UPGRADE_CATAGORY.HEAL
 const RARITY := GameState.UPGRADE_RARITY.COMMON
+const TAGS : Array[String] = ["health"]
 
 func activate() -> void:
 	GameState.player_health = mini(GameState.player_health + 1, 3)

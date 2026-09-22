@@ -6,6 +6,11 @@
 [ext_resource type="AudioStream" uid="uid://b35cwcllllbcf" path="res://Assets/Earth - DOS-88 - Automatav2.mp3" id="4_c4fgj"]
 [ext_resource type="AudioStream" uid="uid://cuyejwdbgj0c2" path="res://Assets/Fire - DOS-88 - City Stomper.mp3" id="5_1svlr"]
 [ext_resource type="AudioStream" uid="uid://d36mtto8m3sy" path="res://Assets/Water - Billy's Sacrifice.mp3" id="6_v4f60"]
+[ext_resource type="AudioStream" uid="uid://bydb2nyvw6d7c" path="res://Assets/SoundEffects/ball_hit_1.wav" id="7_1svlr"]
+[ext_resource type="AudioStream" uid="uid://1w3ijq661g8f" path="res://Assets/SoundEffects/ball_hit_2.wav" id="8_v4f60"]
+[ext_resource type="AudioStream" uid="uid://bxyraq1xhy8kg" path="res://Assets/SoundEffects/bubble_pop.mp3" id="9_v4f60"]
+[ext_resource type="AudioStream" uid="uid://blcwwsbxonmff" path="res://Assets/SoundEffects/wind_up.wav" id="10_kd0hd"]
+[ext_resource type="AudioStream" uid="uid://cidodb472grco" path="res://Assets/SoundEffects/ding.wav" id="11_gdinx"]
 
 [sub_resource type="AudioStreamInteractive" id="AudioStreamInteractive_rrqsv"]
 clip_count = 5
@@ -25,11 +30,35 @@ clip_4/name = &"water"
 clip_4/stream = ExtResource("6_v4f60")
 clip_4/auto_advance = 0
 
-[node name="SoundManager" type="Node" unique_id=286336569 node_paths=PackedStringArray("music")]
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_kd0hd"]
+random_pitch = 1.2656103
+streams_count = 2
+stream_0/stream = ExtResource("7_1svlr")
+stream_1/stream = ExtResource("8_v4f60")
+
+[node name="SoundManager" type="Node" unique_id=286336569 node_paths=PackedStringArray("music", "ballhits", "wind_up", "ding")]
 script = ExtResource("1_p10nr")
 music = NodePath("Music")
+ballhits = NodePath("Ballhits")
+wind_up = NodePath("WindUp")
+ding = NodePath("WindUp/Ding")
 
 [node name="Music" type="AudioStreamPlayer" parent="." unique_id=1365949397]
+process_mode = 3
 stream = SubResource("AudioStreamInteractive_rrqsv")
 autoplay = true
 bus = &"Music"
+
+[node name="Ballhits" type="AudioStreamPlayer" parent="." unique_id=1783506618]
+stream = SubResource("AudioStreamRandomizer_kd0hd")
+bus = &"Sound Effects"
+
+[node name="BubblePop" type="AudioStreamPlayer" parent="." unique_id=603202371]
+stream = ExtResource("9_v4f60")
+volume_db = -5.0
+
+[node name="WindUp" type="AudioStreamPlayer" parent="." unique_id=1929522904]
+stream = ExtResource("10_kd0hd")
+
+[node name="Ding" type="AudioStreamPlayer" parent="WindUp" unique_id=594431822]
+stream = ExtResource("11_gdinx")

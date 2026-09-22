@@ -16,7 +16,6 @@ collision_shape = NodePath("CollisionShape2D")
 ball_radius = 15.0
 visuals = NodePath("ColorRect")
 death_particles = NodePath("DeathParticles")
-skill = 1.0
 debug_label = NodePath("Debug/RichTextLabel")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1557076092]

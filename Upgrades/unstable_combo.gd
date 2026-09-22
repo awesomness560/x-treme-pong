@@ -8,6 +8,7 @@ const DISPLAY_NAME := "Unstable Combo"
 const DESCRIPTION := "Ignition boosts your combo multiplier while it lasts."
 const CATEGORY := GameState.UPGRADE_CATAGORY.HEAT
 const RARITY := GameState.UPGRADE_RARITY.LEGENDARY
+const TAGS : Array[String] = ["ignition", "risk"]
 
 const BOOST := 0.5
 

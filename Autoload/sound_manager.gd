@@ -1,7 +1,11 @@
 extends Node
 
 @export var music: AudioStreamPlayer
+@export var ballhits: AudioStreamPlayer
+
 @export var music_bus_name : String = "Music"
+@export var wind_up: AudioStreamPlayer
+@export var ding: AudioStreamPlayer
 
 @export_group("Speed Brightness")
 ## Low-pass cutoff at zero speed ratio — how muffled the rally sounds at rest.
@@ -44,6 +48,14 @@ extends Node
 ## Kept modest — this is a duck, not a mute.
 @export var ult_volume_db : float = 6.0
 
+@export_group("Pause Menu")
+## Heavier than any other duck on purpose — pausing should read as "far
+## away," not just quieter.
+@export var pause_duck_cutoff_hz : float = 300.0
+## Kept modest — the low-pass does most of the "paused" feel.
+@export var pause_duck_volume_db : float = 4.0
+@export var pause_duck_time : float = 0.25
+
 var _bus_index := -1
 var _lowpass : AudioEffectLowPassFilter
 var _base_volume_db : float = 0.0
@@ -58,13 +70,21 @@ var _hit_duck := 0.0
 var _damage_duck := 0.0
 ## 0..1, tweened. 1 = fully ducked (not silent). Driven by the ultimate.
 var _ult_duck := 0.0
+## 0..1, tweened. 1 = fully ducked. Driven by the pause menu.
+var _pause_duck := 0.0
 
 var _hit_tween : Tween
 var _damage_tween : Tween
 var _sweep_tween : Tween
 var _ult_tween : Tween
+var _pause_tween : Tween
+var _wind_up_tween : Tween
 
 func _ready() -> void:
+	# The pause duck needs _process (and its own tween) to keep running while
+	# get_tree().paused is true, or the music would just freeze at whatever
+	# it was doing the instant pausing hit instead of actually ducking.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_bus_index = AudioServer.get_bus_index(music_bus_name)
 	if _bus_index >= 0:
 		_base_volume_db = AudioServer.get_bus_volume_db(_bus_index)
@@ -163,6 +183,61 @@ func _tween_ult_duck(target: float, time: float) -> void:
 	_ult_tween.tween_property(self, "_ult_duck", target, time) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
+## Ball hit sound. `pitch` is the sample's own pitch_scale — 1.0 (default) is
+## its natural pitch for a wall bounce, 0.5 (an octave down) for a paddle
+## return — see ball.gd's callers.
+func play_pong(pitch: float = 1.0) -> void:
+	if ballhits == null:
+		return
+	ballhits.pitch_scale = pitch
+	ballhits.play()
+
+## Starts the wind-up sound at its natural pitch and ramps it up to whatever
+## pitch makes the clip's own length fit inside `wind_up_time` — so a longer
+## charge (a bigger time_to_full) gets a slower climb, a shorter one gets a
+## steeper one, and either way the clip is finishing right around when the
+## charge would complete. Caller stops it early via stop_wind_up() on a
+## cancel, or once a smash actually lands (see smash.gd).
+func play_wind_up(wind_up_time: float) -> void:
+	if wind_up == null:
+		return
+	if _wind_up_tween and _wind_up_tween.is_valid():
+		_wind_up_tween.kill()
+
+	var length := wind_up.stream.get_length() if wind_up.stream else 0.0
+	wind_up.pitch_scale = 1.0
+	wind_up.play()
+
+	if wind_up_time <= 0.0 or length <= 0.0:
+		return
+	# Ramping linearly from 1.0 to peak_pitch, the average pitch over the
+	# ramp is (1 + peak_pitch) / 2 — solving for that average times
+	# wind_up_time to equal the clip's real length gives peak_pitch.
+	var peak_pitch := maxf(1.0, (2.0 * length / wind_up_time) - 1.0)
+	_wind_up_tween = create_tween()
+	_wind_up_tween.tween_property(wind_up, "pitch_scale", peak_pitch, wind_up_time)
+
+func stop_wind_up() -> void:
+	if _wind_up_tween and _wind_up_tween.is_valid():
+		_wind_up_tween.kill()
+	if wind_up:
+		wind_up.stop()
+
+func play_ding() -> void:
+	if ding == null:
+		return
+	ding.play()
+
+## Called by the pause menu on open/close. Runs while the tree is actually
+## paused, so this tween has to ignore pause the same way this whole node does.
+func set_paused_duck(is_paused: bool) -> void:
+	if _pause_tween and _pause_tween.is_valid():
+		_pause_tween.kill()
+	_pause_tween = create_tween()
+	_pause_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_pause_tween.tween_property(self, "_pause_duck", 1.0 if is_paused else 0.0, pause_duck_time) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
 # --- Push to the bus ---
 
 func _push() -> void:
@@ -172,6 +247,7 @@ func _push() -> void:
 	var cutoff := minf(_speed_cutoff, lerpf(bright_cutoff_hz, hit_duck_cutoff_hz, _hit_duck))
 	cutoff = minf(cutoff, lerpf(bright_cutoff_hz, damage_muffle_cutoff_hz, _damage_duck))
 	cutoff = minf(cutoff, lerpf(bright_cutoff_hz, ult_cutoff_hz, _ult_duck))
+	cutoff = minf(cutoff, lerpf(bright_cutoff_hz, pause_duck_cutoff_hz, _pause_duck))
 	if _lowpass:
 		_lowpass.cutoff_hz = cutoff
 
@@ -180,4 +256,5 @@ func _push() -> void:
 		volume += ignition_volume_bonus_db
 	volume -= hit_duck_volume_db * _hit_duck
 	volume -= ult_volume_db * _ult_duck
+	volume -= pause_duck_volume_db * _pause_duck
 	AudioServer.set_bus_volume_db(_bus_index, volume)

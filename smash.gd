@@ -79,8 +79,14 @@ func _physics_process(delta: float) -> void:
 	elif Input.is_action_pressed("charge_up"):
 		if is_animating():
 			return # Recovery: can't charge while a smash is still playing.
+		if Input.is_action_just_pressed("charge_up"):
+			SoundManager.play_wind_up(time_to_full)
+		var was_full := time_held >= time_to_full
 		time_held = minf(time_held + delta, time_to_full)
 		set_charge(time_held / time_to_full)
+		if not was_full and time_held >= time_to_full:
+			SoundManager.stop_wind_up()
+			SoundManager.play_ding()
 	elif not is_animating():
 		# Idle: hold the resting colour, pulsing gold when armed.
 		self_modulate = _rest_color()
@@ -107,6 +113,7 @@ func _on_armed_changed(armed: bool) -> void:
 # --- Smash logic ---
 
 func _on_whiff_or_cancel() -> void:
+	SoundManager.stop_wind_up()
 	time_held = 0.0
 	_pending_perfect = false
 	animate_relax()
@@ -119,6 +126,8 @@ func _on_smash() -> void:
 	if t < 0.0 or t > window:
 		_on_whiff_or_cancel()
 		return
+
+	SoundManager.stop_wind_up()
 
 	# Armed: the ult replaces the smash entirely, at full strength.
 	if armed and GameState.ult_runner and GameState.ult_runner.activate():

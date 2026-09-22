@@ -37,6 +37,13 @@ var charge := 0.0 # In points.
 var _rate_accum := 0.0
 var _smoothed_rate := 0.0
 
+## Multiplies every meter award, from any source. 1.0 (default) is the base
+## game's behaviour — Kindle is the only thing that raises this.
+var gain_multiplier := 1.0
+## Fraction of a full bar left over right after firing, instead of draining
+## to 0. 0.0 (default) is the base game's behaviour — Refund raises this.
+var refund_on_spend_fraction := 0.0
+
 func _ready() -> void:
 	var ball := GameState.ball
 	GameState.ult_charge_manager = self
@@ -97,12 +104,21 @@ func on_overkill(overkill_damage: float) -> void:
 func spend() -> bool:
 	if not GameState.ult_armed:
 		return false
-	charge = 0.0
+	charge = max_charge * clampf(refund_on_spend_fraction, 0.0, 1.0)
 	GameState.ult_armed = false
 	GameState.ult_armed_changed.emit(false)
 	GameState.ult_spent.emit()
 	_push()
 	return true
+
+## Force the bar full and armed — Primed calls this at the start of every
+## round instead of waiting for actual charge to accumulate.
+func arm() -> void:
+	charge = max_charge
+	_push()
+	if not GameState.ult_armed:
+		GameState.ult_armed = true
+		GameState.ult_armed_changed.emit(true)
 
 # --- Internals ---
 
@@ -110,6 +126,7 @@ func _award(amount: float, kind: GameState.GainKind, announce: bool = true) -> v
 	if amount <= 0.0 or GameState.ult_armed:
 		return # Overflow while armed is wasted: fire it.
 
+	amount *= gain_multiplier
 	var before := charge
 	charge = minf(charge + amount, max_charge)
 	var gained := charge - before

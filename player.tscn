@@ -36,8 +36,8 @@ points = PackedVector2Array(0, 57, 0, -55)
 default_color = Color(1.572, 0.308, 0.852, 1)
 script = ExtResource("2_onrkg")
 player = NodePath("..")
-perfect_window = 0.05
-smash_window = 0.2
+time_to_full = 0.15
+smash_window = 0.35
 
 [node name="HitArea" type="Area2D" parent="Paddle" unique_id=1268401425]
 

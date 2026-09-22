@@ -11,4 +11,4 @@ const RARITY := GameState.UPGRADE_RARITY.COMMON
 const TAGS : Array[String] = ["health"]
 
 func activate() -> void:
-	GameState.player_health = mini(GameState.player_health + 1, 3)
+	GameState.player_health = mini(GameState.player_health + 1, GameState.max_player_health)

@@ -86,6 +86,15 @@ var in_play := false
 var _serve_point := Vector2.ZERO
 var _entrance_tween: Tween
 
+## Extra speed added on every top/bottom wall bounce. 0 (default) is the
+## base game's behaviour — Ricochet is the only thing that raises this.
+var wall_bounce_speed_gain := 0.0
+
+## Chance a smash phases straight through the boss paddle instead of
+## bouncing off it. 0 (default) is the base game's behaviour — Pierce is
+## the only thing that raises this.
+var pierce_chance := 0.0
+
 var ignited := false
 var ignitable := false
 
@@ -291,10 +300,18 @@ func _physics_process(delta: float) -> void:
 		_hit_border(collider)
 	elif collider is EnemyPaddle and _grace_timer > 0.0:
 		pass # Just cracked the border: pass through the boss's paddle.
+	elif collider is EnemyPaddle and _pending_factor > 1.0 and randf() < pierce_chance:
+		# Pierce: this smash phases straight through instead of bouncing.
+		_pending_factor = 0.0
+		_last_event = "PIERCE"
+		_set_enemy_solid(false)
+		_enemy_resolidify_pending = true
+		_grace_timer = border_grace_time
 	elif (collider is Paddle or collider is EnemyPaddle) and absf(normal.x) > 0.5:
 		_bounce_off_paddle(collision)
 	else:
 		_direction = _direction.bounce(normal)
+		_speed = minf(_speed + wall_bounce_speed_gain, max_speed)
 		SoundManager.play_pong()
 
 # --- Border ---
@@ -304,7 +321,7 @@ func _hit_border(border: Node2D) -> void:
 		_break_border(border)
 		return
 
-	var damage := _compute_damage()
+	var damage := _compute_damage() * GameState.damage_multiplier
 	_speed = start_speed
 	_pending_factor = 0.0
 	_grace_timer = border_grace_time
@@ -324,15 +341,16 @@ func _break_border(border: Node2D) -> void:
 	_speed = start_speed
 	_pending_factor = 0.0
 	_grace_timer = border_grace_time
-	_last_event = "ULT BREAK (%.2f dmg)" % ult_break_damage
+	var damage := ult_break_damage * GameState.damage_multiplier
+	_last_event = "ULT BREAK (%.2f dmg)" % damage
 	_set_ignited(false)
 	_update_ignitable()
 	GameState.last_hit_was_smash = false
 	GameState.last_hit_perfect = false
 
-	GameState.take_damage.emit(ult_break_damage)
+	GameState.take_damage.emit(damage)
 	GameState.ult_impact.emit()
-	border_broken.emit(border, ult_break_damage)
+	border_broken.emit(border, damage)
 
 func _compute_damage() -> float:
 	# Exponential from base to max across the speed range, then capped.

@@ -62,6 +62,7 @@ var _armed_tween: Tween
 var _pulse_phase := 0.0
 
 func _ready() -> void:
+	GameState.paddle_flex = self
 	_update_points()
 	GameState.ball.paddle_hit.connect(_on_paddle_hit)
 	GameState.ult_armed_changed.connect(_on_armed_changed)

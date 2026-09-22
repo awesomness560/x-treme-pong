@@ -18,7 +18,7 @@ func open() -> void:
 	for card in get_children():
 		card.queue_free()
 
-	if GameState.player_health < 3:
+	if GameState.player_health < GameState.max_player_health:
 		_add_card(Upgrades.HEAL_SCRIPT)
 		for script in Upgrades.roll(2):
 			_add_card(script)

@@ -68,6 +68,7 @@ func _spawn_boss() -> void:
 	if boss_scene == null:
 		return
 	var boss := boss_scene.instantiate() as EnemyPaddle
+	boss.skill += GameState.boss_skill_bonus
 	# Tell it not to fight the tween with its own positioning until settle().
 	boss.entering = true
 	add_child(boss)
@@ -82,6 +83,10 @@ func _spawn_border() -> void:
 	if border_scene == null:
 		return
 	var border := border_scene.instantiate() as Border
+	# _ready() (fired by add_child below) reads starting_health into health
+	# synchronously, so this has to land before that or the multiplier misses
+	# it entirely — same class of bug as the popup's mouse_filter ordering.
+	border.starting_health *= GameState.boss_health_multiplier
 	add_child(border)
 	border.global_position = _border_rest_position + spawn_offset
 	var tween := create_tween()

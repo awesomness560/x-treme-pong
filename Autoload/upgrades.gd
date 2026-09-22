@@ -16,14 +16,27 @@ const TAG_AFFINITY_BONUS := 0.75
 ## Every upgrade that can be rolled. Heal is deliberately not here — the UI
 ## spawns it directly instead of drawing it from the pool.
 const CATALOG : Array[Script] = [
-	preload("res://Upgrades/low_flashpoint.gd"),
-	preload("res://Upgrades/heavy_hand.gd"),
-	preload("res://Upgrades/higher_ceiling.gd"),
 	preload("res://Upgrades/kindle.gd"),
-	preload("res://Upgrades/unstable_combo.gd"),
+	preload("res://Upgrades/momentum.gd"),
+	preload("res://Upgrades/ricochet.gd"),
+	preload("res://Upgrades/combustion.gd"),
+	preload("res://Upgrades/wide_swing.gd"),
+	preload("res://Upgrades/glass_cannon.gd"),
+	preload("res://Upgrades/pierce.gd"),
+	preload("res://Upgrades/tough.gd"),
+	preload("res://Upgrades/fever.gd"),
+	preload("res://Upgrades/last_stand.gd"),
+	preload("res://Upgrades/refund.gd"),
+	preload("res://Upgrades/primed.gd"),
 ]
 
 const HEAL_SCRIPT : Script = preload("res://Upgrades/heal.gd")
+
+@export_group("Testing")
+## Forces this upgrade into the first slot of every roll (as long as it's
+## still in the pool), so you can pick it deliberately and verify it works.
+## The rest of the offer still rolls normally. Leave null for normal play.
+@export var force_upgrade : Script
 
 var _pool : Array[Script] = []
 
@@ -45,6 +58,11 @@ func _ready() -> void:
 func roll(count: int) -> Array[Script]:
 	var picks : Array[Script] = []
 	var available := _pool.duplicate()
+
+	if force_upgrade != null and available.has(force_upgrade):
+		picks.append(force_upgrade)
+		available.erase(force_upgrade)
+		count -= 1
 
 	for i in count:
 		if available.is_empty():

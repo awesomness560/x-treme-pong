@@ -112,7 +112,6 @@ one_shot = true
 
 [node name="UltCharge" type="Node" parent="." unique_id=1439744857]
 script = ExtResource("10_4c57u")
-max_charge = 30.0
 
 [node name="UltRunner" type="Node" parent="UltCharge" unique_id=941953470]
 process_mode = 3

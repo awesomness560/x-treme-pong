@@ -60,6 +60,25 @@ signal player_health_changed
 ## Fires only on an actual hit (not on healing) — take_damage above is the
 ## boss/border's damage signal, this one is the player's.
 signal player_damaged
+## Dummy for now — nothing actually ends the game on this yet. Wherever a
+## hit would drop player_health to 0 or below should emit this instead of
+## (or alongside) whatever placeholder it does today; real game-over
+## behaviour hooks in here later.
+signal game_over
+
+## True until Last Stand consumes it to survive one lethal hit this run.
+var _last_stand_available := false
+
+func grant_last_stand() -> void:
+	_last_stand_available = true
+
+## Call wherever a hit is about to take player_health to 0 or below. Returns
+## true (and consumes the save) if that hit should be survived instead.
+func consume_last_stand() -> bool:
+	if not _last_stand_available:
+		return false
+	_last_stand_available = false
+	return true
 
 var ball: Ball
 var player: Paddle
@@ -69,6 +88,7 @@ var ult_charge_manager: UltCharge
 var cut_in : UltCutIn
 var ui : UI
 var border : Border
+var paddle_flex : PaddleFlex
 
 var combo_multiplier : float = 1.0
 var ball_ignited : bool = false
@@ -88,10 +108,31 @@ var ult_armed := false
 ## Charge per second right now, smoothed. Drives the edge spark.
 var ult_rate := 0.0
 
-var player_health = 3 :
+## The run's current health cap. Second Wind's own heal cap and the "should
+## we offer it" check in upgrades_ui.gd both read this instead of a
+## hardcoded 3, so an upgrade like Glass Cannon can actually lower it.
+var max_player_health := 3
+
+var player_health = max_player_health :
 	set (value):
 		player_health = value
 		player_health_changed.emit()
 
+## Multiplies every point of damage dealt to the boss, from any source
+## (border hits, ult breaks, event-triggered upgrades like Combustion) —
+## see deal_damage() below. Upgrades that boost "all damage" raise this
+## instead of touching each damage source individually.
+var damage_multiplier := 1.0
+
+func deal_damage(amount: float) -> void:
+	take_damage.emit(amount * damage_multiplier)
+
+## Additive bonus applied to every new boss's base `skill`, and the
+## cumulative multiplier applied to every new border's base
+## `starting_health` — both grow every round via _scale_round() below.
+var boss_skill_bonus := 0.0
+var boss_health_multiplier := 1.0
+
 func _scale_round() -> void:
-	pass
+	boss_skill_bonus += 0.2
+	boss_health_multiplier *= 1.3

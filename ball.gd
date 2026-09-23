@@ -265,11 +265,18 @@ func _set_ignited(value: bool) -> void:
 
 ## Hook for ignition effects: trail, particles, sound, screen tint.
 func _on_ignited() -> void:
-	pass
+	GameState.stat_ignitions += 1
+	if ignite_particles:
+		ignite_particles.emitting = true
+	if ignite:
+		ignite.play()
 
 ## Hook for the ball cooling off.
 func _on_extinguished() -> void:
-	pass
+	if ignite_particles:
+		ignite_particles.emitting = false
+	if ignite:
+		ignite.stop()
 
 func _apply_ignition_color() -> void:
 	if sprite == null:
@@ -394,6 +401,7 @@ func _bounce_off_paddle(collision: KinematicCollision2D) -> void:
 		var hot := ignitable
 		_speed = minf(_speed * _pending_factor, max_speed)
 		GameState.last_hit_was_smash = true
+		GameState.stat_smashes += 1
 		_last_event = "SMASH x%.2f%s" % [_pending_factor, " IGNITE" if hot else ""]
 		_pending_factor = 0.0
 		if hot:

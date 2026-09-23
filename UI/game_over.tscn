@@ -1,0 +1,151 @@
+[gd_scene format=3 uid="uid://def737bn2hp2e"]
+
+[ext_resource type="FontFile" uid="uid://bh0fcepun17kx" path="res://Assets/ChakraPetch-SemiBold.ttf" id="1_3y5qq"]
+[ext_resource type="FontFile" uid="uid://dnmyx3m1s3qcm" path="res://Assets/ChakraPetch-Medium.ttf" id="1_jawqf"]
+[ext_resource type="Script" uid="uid://bug3ruspde5yj" path="res://UI/game_over.gd" id="1_wruqd"]
+
+[sub_resource type="FontVariation" id="FontVariation_3y5qq"]
+base_font = ExtResource("1_jawqf")
+spacing_glyph = 2
+
+[sub_resource type="FontVariation" id="FontVariation_wruqd"]
+base_font = ExtResource("1_jawqf")
+spacing_glyph = 2
+
+[node name="GameOver" type="Control" unique_id=613613052 node_paths=PackedStringArray("restart")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_wruqd")
+restart = NodePath("Restart")
+
+[node name="Background" type="ColorRect" parent="." unique_id=2063314732]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.023709971, 0.053221814, 0.12309062, 0.7254902)
+
+[node name="Round" type="Label" parent="." unique_id=1422930033]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -122.0
+offset_top = -131.0
+offset_right = 122.0
+offset_bottom = -52.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("1_3y5qq")
+theme_override_font_sizes/font_size = 60
+text = "Round: 4"
+
+[node name="GameOver" type="Label" parent="." unique_id=1881407037]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -52.0
+offset_top = 156.0
+offset_right = 52.0
+offset_bottom = 179.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.7476796, 0.7476796, 0.7476796, 1)
+theme_override_fonts/font = SubResource("FontVariation_3y5qq")
+text = "GAME OVER"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1649668172]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -328.0
+offset_top = 14.0
+offset_right = 328.0
+offset_bottom = 119.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 100
+alignment = 1
+
+[node name="Damage" type="VBoxContainer" parent="HBoxContainer" unique_id=1550298013]
+layout_mode = 2
+
+[node name="Stat" type="Label" parent="HBoxContainer/Damage" unique_id=91532863]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_3y5qq")
+theme_override_font_sizes/font_size = 40
+text = "412"
+horizontal_alignment = 1
+
+[node name="Name" type="Label" parent="HBoxContainer/Damage" unique_id=9242459]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7476796, 0.7476796, 0.7476796, 1)
+theme_override_fonts/font = SubResource("FontVariation_3y5qq")
+text = "DAMAGE"
+horizontal_alignment = 1
+
+[node name="Smashes" type="VBoxContainer" parent="HBoxContainer" unique_id=607286954]
+layout_mode = 2
+
+[node name="Stat" type="Label" parent="HBoxContainer/Smashes" unique_id=1669851569]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_3y5qq")
+theme_override_font_sizes/font_size = 40
+text = "12"
+horizontal_alignment = 1
+
+[node name="Name" type="Label" parent="HBoxContainer/Smashes" unique_id=177397248]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7476796, 0.7476796, 0.7476796, 1)
+theme_override_fonts/font = SubResource("FontVariation_3y5qq")
+text = "SMASHES"
+horizontal_alignment = 1
+
+[node name="Ignitions" type="VBoxContainer" parent="HBoxContainer" unique_id=360616642]
+layout_mode = 2
+
+[node name="Stat" type="Label" parent="HBoxContainer/Ignitions" unique_id=505026778]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_3y5qq")
+theme_override_font_sizes/font_size = 40
+text = "12"
+horizontal_alignment = 1
+
+[node name="Name" type="Label" parent="HBoxContainer/Ignitions" unique_id=457763978]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7476796, 0.7476796, 0.7476796, 1)
+theme_override_fonts/font = SubResource("FontVariation_3y5qq")
+text = "IGNITIONS"
+horizontal_alignment = 1
+
+[node name="Restart" type="Button" parent="." unique_id=1004796648]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -116.0
+offset_top = -141.0
+offset_right = 116.0
+offset_bottom = -71.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.9955804, 0.99558026, 0.99558026, 1)
+theme_override_fonts/font = SubResource("FontVariation_wruqd")
+theme_override_font_sizes/font_size = 30
+text = "RESTART"
+
+[connection signal="pressed" from="Restart" to="." method="_on_restart_pressed"]

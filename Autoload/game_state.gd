@@ -60,11 +60,14 @@ signal player_health_changed
 ## Fires only on an actual hit (not on healing) — take_damage above is the
 ## boss/border's damage signal, this one is the player's.
 signal player_damaged
-## Dummy for now — nothing actually ends the game on this yet. Wherever a
-## hit would drop player_health to 0 or below should emit this instead of
-## (or alongside) whatever placeholder it does today; real game-over
-## behaviour hooks in here later.
+## Emitted wherever a hit takes player_health to 0 or below — game_over.gd
+## listens for this to show the game-over screen.
 signal game_over
+
+## Run-scoped counters for the game-over screen's stat display.
+var stat_damage_dealt := 0.0
+var stat_smashes := 0
+var stat_ignitions := 0
 
 ## True until Last Stand consumes it to survive one lethal hit this run.
 var _last_stand_available := false
@@ -129,6 +132,7 @@ var damage_multiplier := 1.0
 ## numbers) use the return value instead of re-deriving it themselves.
 func deal_damage(amount: float) -> float:
 	var final_amount := amount * damage_multiplier
+	stat_damage_dealt += final_amount
 	take_damage.emit(final_amount)
 	return final_amount
 
@@ -142,3 +146,28 @@ func _scale_round() -> void:
 	boss_skill_bonus += 0.2
 	# Additive, not compounding — round 5 is x2.2, not x2.86.
 	boss_health_multiplier += 0.3
+
+## Restores every run-scoped field back to its starting value. Called by the
+## restart button before reloading the scene — autoloads (unlike scene
+## nodes) survive a scene reload on their own, so this has to be explicit.
+func reset_run() -> void:
+	max_player_health = 3
+	player_health = max_player_health
+	damage_multiplier = 1.0
+	boss_skill_bonus = 0.0
+	boss_health_multiplier = 1.0
+	combo_multiplier = 1.0
+	last_hit_perfect = false
+	last_hit_was_smash = false
+	ball_ignited = false
+	ball_ignitable = false
+	ult_charge = 0.0
+	ult_armed = false
+	ult_rate = 0.0
+	input_locked = false
+	ult_active = false
+	_last_stand_available = false
+	_boss_bag.clear()
+	stat_damage_dealt = 0.0
+	stat_smashes = 0
+	stat_ignitions = 0

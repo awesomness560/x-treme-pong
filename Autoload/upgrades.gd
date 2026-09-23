@@ -53,6 +53,17 @@ var owned_tags : Dictionary = {}
 func _ready() -> void:
 	_pool = CATALOG.duplicate()
 
+## Called by the restart button before reloading the scene. Committed
+## upgrade instances are children of this autoload, not the scene tree, so
+## a scene reload alone would leave them behind — still connected to
+## whatever they hooked, still around to react to the new run.
+func reset_run() -> void:
+	for child in get_children():
+		child.queue_free()
+	_pool = CATALOG.duplicate()
+	taken.clear()
+	owned_tags.clear()
+
 ## Rolls up to `count` distinct upgrades from the remaining pool. Upgrades
 ## offered but not picked aren't removed here — only commit() does that.
 func roll(count: int) -> Array[Script]:

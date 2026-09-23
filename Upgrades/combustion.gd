@@ -10,7 +10,9 @@ const CATEGORY := GameState.UPGRADE_CATAGORY.HEAT
 const RARITY := GameState.UPGRADE_RARITY.LEGENDARY
 const TAGS : Array[String] = ["ignition", "border", "damage"]
 
-const BASE_DAMAGE := 2.0
+## Scaled up alongside ball.gd's new border-damage range (30-210 baseline) —
+## the old value of 2.0 would now round to basically nothing.
+const BASE_DAMAGE := 80.0
 
 func activate() -> void:
 	GameState.ball.ignited_changed.connect(_on_ignited_changed)
@@ -18,4 +20,5 @@ func activate() -> void:
 func _on_ignited_changed(ignited: bool) -> void:
 	if not ignited:
 		return
-	GameState.deal_damage(BASE_DAMAGE * GameState.ball.get_speed_ratio())
+	var damage := GameState.deal_damage(BASE_DAMAGE * GameState.ball.get_speed_ratio())
+	DamageNumbers.spawn(GameState.ball.global_position, damage)

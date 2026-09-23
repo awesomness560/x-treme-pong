@@ -6,6 +6,8 @@ extends Node
 @export var music_bus_name : String = "Music"
 @export var wind_up: AudioStreamPlayer
 @export var ding: AudioStreamPlayer
+@export var glass_crack: AudioStreamPlayer
+@export var glass_shatter: AudioStreamPlayer
 
 @export_group("Speed Brightness")
 ## Low-pass cutoff at zero speed ratio — how muffled the rally sounds at rest.

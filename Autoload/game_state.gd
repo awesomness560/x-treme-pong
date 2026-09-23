@@ -124,8 +124,13 @@ var player_health = max_player_health :
 ## instead of touching each damage source individually.
 var damage_multiplier := 1.0
 
-func deal_damage(amount: float) -> void:
-	take_damage.emit(amount * damage_multiplier)
+## Applies the multiplier, emits take_damage, and hands back the final
+## amount actually dealt — callers that also need to show it (damage
+## numbers) use the return value instead of re-deriving it themselves.
+func deal_damage(amount: float) -> float:
+	var final_amount := amount * damage_multiplier
+	take_damage.emit(final_amount)
+	return final_amount
 
 ## Additive bonus applied to every new boss's base `skill`, and the
 ## cumulative multiplier applied to every new border's base
@@ -135,4 +140,5 @@ var boss_health_multiplier := 1.0
 
 func _scale_round() -> void:
 	boss_skill_bonus += 0.2
-	boss_health_multiplier *= 1.3
+	# Additive, not compounding — round 5 is x2.2, not x2.86.
+	boss_health_multiplier += 0.3

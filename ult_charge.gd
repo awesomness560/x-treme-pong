@@ -12,8 +12,10 @@ extends Node
 @export var ignition_trigger: float = 15.0
 @export var border_min: float = 10.0
 @export var border_max: float = 20.0
-## Border damage that awards border_max. Below this it scales down.
-@export var border_damage_for_max: float = 3.0
+## Border damage that awards border_max. Below this it scales down. Scaled
+## up to match ball.gd's new max_damage (130) — otherwise every hit would
+## instantly clamp to border_max under the old single-digit threshold.
+@export var border_damage_for_max: float = 120.0
 @export var damage_taken: float = 10.0
 
 @export_group("Ignition Drip")
@@ -114,8 +116,13 @@ func spend() -> bool:
 ## Force the bar full and armed — Primed calls this at the start of every
 ## round instead of waiting for actual charge to accumulate.
 func arm() -> void:
+	var gained := max_charge - charge
 	charge = max_charge
 	_push()
+	# ult_armed_changed alone only drives the bar's armed glow, not its fill
+	# — the fill only ever animates off ult_gained, so that has to fire too.
+	if gained > 0.0:
+		GameState.ult_gained.emit(gained / max_charge, GameState.GainKind.REFUND)
 	if not GameState.ult_armed:
 		GameState.ult_armed = true
 		GameState.ult_armed_changed.emit(true)

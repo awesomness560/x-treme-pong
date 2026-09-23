@@ -7,6 +7,8 @@ signal ignited_changed(ignited: bool)
 signal ignitable_changed(ignitable: bool)
 
 signal border_broken(border: Node2D, damage: float)
+@export var ignite_particles: CPUParticles2D
+@export var ignite: AudioStreamPlayer
 
 @export_group("Speed")
 @export var start_speed: float = 400.0
@@ -41,14 +43,14 @@ signal border_broken(border: Node2D, damage: float)
 
 @export_group("Border Damage")
 ## Damage at reference speed, and the floor of the curve.
-@export var base_damage: float = 0.35
+@export var base_damage: float = 30.0
 ## Damage at max speed, before ignite and perfect. The cap.
-@export var max_damage: float = 3.2
+@export var max_damage: float = 130.0
 ## Higher keeps low speeds weak and makes the top end spike.
 @export_range(1.0, 5.0) var damage_exponent: float = 2.6
 ## Speed that counts as the bottom of the damage curve.
 @export var reference_speed: float = 400.0
-@export var perfect_bonus: float = 0.3
+@export var perfect_bonus: float = 15.0
 ## Seconds after a border hit during which the enemy paddle can't touch the ball.
 @export var border_grace_time: float = 0.35
 
@@ -74,8 +76,9 @@ signal border_broken(border: Node2D, damage: float)
 @export_group("Ultimate")
 ## Speed the ult launches at. Bypasses max_speed deliberately.
 @export var ult_speed: float = 3000.0
-## Damage the break deals, ignoring the normal formula.
-@export var ult_break_damage: float = 4.0
+## Damage the break deals, ignoring the normal formula. Was ~1.25x the old
+## max_damage (3.2) — kept that same ratio against the new max_damage (130).
+@export var ult_break_damage: float = 165.0
 var ult_mode := false
 var _enemy_layer_saved := 0
 ## True after a border break, until the grace timer runs out and the boss
@@ -300,9 +303,11 @@ func _physics_process(delta: float) -> void:
 		_hit_border(collider)
 	elif collider is EnemyPaddle and _grace_timer > 0.0:
 		pass # Just cracked the border: pass through the boss's paddle.
-	elif collider is EnemyPaddle and _pending_factor > 1.0 and randf() < pierce_chance:
+	elif collider is EnemyPaddle and GameState.last_hit_was_smash and randf() < pierce_chance:
 		# Pierce: this smash phases straight through instead of bouncing.
-		_pending_factor = 0.0
+		# _pending_factor is already consumed by now (it's applied back at
+		# the player's own paddle) — last_hit_was_smash is what survives
+		# the flight across the court to tell us this shot was a smash.
 		_last_event = "PIERCE"
 		_set_enemy_solid(false)
 		_enemy_resolidify_pending = true
@@ -321,17 +326,18 @@ func _hit_border(border: Node2D) -> void:
 		_break_border(border)
 		return
 
-	var damage := _compute_damage() * GameState.damage_multiplier
+	var raw_damage := _compute_damage()
 	_speed = start_speed
 	_pending_factor = 0.0
 	_grace_timer = border_grace_time
-	_last_event = "border (%.2f dmg)" % damage
 	_set_ignited(false)
 	_update_ignitable()
 	GameState.last_hit_was_smash = false
 
-	GameState.take_damage.emit(damage)
+	var damage := GameState.deal_damage(raw_damage)
+	_last_event = "border (%.2f dmg)" % damage
 	border_hit.emit(border, damage)
+	DamageNumbers.spawn(global_position, damage)
 
 ## The ult's payload: fixed damage, its own signal.
 func _break_border(border: Node2D) -> void:
@@ -341,16 +347,16 @@ func _break_border(border: Node2D) -> void:
 	_speed = start_speed
 	_pending_factor = 0.0
 	_grace_timer = border_grace_time
-	var damage := ult_break_damage * GameState.damage_multiplier
-	_last_event = "ULT BREAK (%.2f dmg)" % damage
 	_set_ignited(false)
 	_update_ignitable()
 	GameState.last_hit_was_smash = false
 	GameState.last_hit_perfect = false
 
-	GameState.take_damage.emit(damage)
+	var damage := GameState.deal_damage(ult_break_damage)
+	_last_event = "ULT BREAK (%.2f dmg)" % damage
 	GameState.ult_impact.emit()
 	border_broken.emit(border, damage)
+	DamageNumbers.spawn(global_position, damage)
 
 func _compute_damage() -> float:
 	# Exponential from base to max across the speed range, then capped.

@@ -37,7 +37,7 @@ size = Vector2(44, 890)
 
 [node name="Border" type="StaticBody2D" unique_id=1802476433 node_paths=PackedStringArray("visuals") groups=["Border"]]
 script = ExtResource("1_ujjr2")
-starting_health = 5.0
+starting_health = 300.0
 visuals = NodePath("Visuals")
 
 [node name="Visuals" type="ColorRect" parent="." unique_id=201100292]

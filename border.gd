@@ -74,7 +74,7 @@ func _process(delta: float) -> void:
 	_push()
 
 func _on_hit() -> void:
-	# Flash from where the ball is.
+	# Flash from where the ball is
 	var local := (GameState.ball.global_position - global_position) / visuals.size
 	_flash = 1.0
 
@@ -86,11 +86,13 @@ func _on_hit() -> void:
 		.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 
 	if health <= 0.0:
+		SoundManager.glass_shatter.play()
 		_tween.tween_property(self, "_shatter", 1.0, shatter_time) \
 			.set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
 		await _tween.finished
 		queue_free()
 
+	SoundManager.glass_crack.play()
 	_set_hit_point(local)
 
 func _set_hit_point(local: Vector2) -> void:

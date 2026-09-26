@@ -7,8 +7,6 @@ extends Line2D
 @export var facing: float = 1.0 # 1 = ball comes from the right, -1 = from the left
 
 @export_group("Logic")
-@export var time_to_full: float = 0.6
-@export var min_time_held: float = 0.15
 @export var perfect_window: float = 0.1 # seconds before contact
 @export var smash_window: float = 0.3
 ## Smash window while armed. Wider, so firing the ult is easier to land.
@@ -16,10 +14,13 @@ extends Line2D
 ## Vertical half-range the ball must arrive within to be hittable.
 @export var reach: float = 70.0
 
-@export_group("Wind Up")
-@export var max_bend: float = 12.0
-@export var max_pullback: float = 4.0
-@export var charge_brightness: float = 2.5
+@export_group("Whiff Animation")
+## A tap that misses its timing snaps back a little instead of forward —
+## brief and small, just enough to read as "swung and missed."
+@export var whiff_bend: float = 6.0
+@export var whiff_shift: float = 3.0
+@export var whiff_time: float = 0.08
+@export var whiff_settle_time: float = 0.15
 
 @export_group("Armed")
 @export var armed_color: Color = Color(2.2, 1.6, 0.45)
@@ -40,8 +41,6 @@ extends Line2D
 @export_group("Hitstop")
 @export var hitstop_scale: float = 0.05
 @export var hitstop_time: float = 0.5
-
-var time_held: float = 0.0
 
 var bend: float = 0.0:
 	set(value):
@@ -72,25 +71,18 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_pulse_phase += delta * armed_pulse_speed * TAU
 
-	if Input.is_action_just_released("charge_up"):
-		if time_held < min_time_held or not _in_vertical_reach():
-			_on_whiff_or_cancel()
-		else:
-			_on_smash()
-	elif Input.is_action_pressed("charge_up"):
-		if is_animating():
-			return # Recovery: can't charge while a smash is still playing.
-		if Input.is_action_just_pressed("charge_up"):
-			SoundManager.play_wind_up(time_to_full)
-		var was_full := time_held >= time_to_full
-		time_held = minf(time_held + delta, time_to_full)
-		set_charge(time_held / time_to_full)
-		if not was_full and time_held >= time_to_full:
-			SoundManager.stop_wind_up()
-			SoundManager.play_ding()
-	elif not is_animating():
+	if not is_animating():
 		# Idle: hold the resting colour, pulsing gold when armed.
 		self_modulate = _rest_color()
+
+	if not Input.is_action_just_pressed("charge_up"):
+		return
+	if is_animating():
+		return # Recovery: can't swing while a smash is still playing.
+	if not _in_vertical_reach():
+		_on_whiff_or_cancel()
+	else:
+		_on_smash()
 
 # --- Colour ---
 
@@ -114,10 +106,8 @@ func _on_armed_changed(armed: bool) -> void:
 # --- Smash logic ---
 
 func _on_whiff_or_cancel() -> void:
-	SoundManager.stop_wind_up()
-	time_held = 0.0
 	_pending_perfect = false
-	animate_relax()
+	animate_whiff()
 
 func _on_smash() -> void:
 	var t := time_to_impact()
@@ -128,22 +118,17 @@ func _on_smash() -> void:
 		_on_whiff_or_cancel()
 		return
 
-	SoundManager.stop_wind_up()
-
 	# Armed: the ult replaces the smash entirely, at full strength.
 	if armed and GameState.ult_runner and GameState.ult_runner.activate():
-		animate_smash(1.0)
-		time_held = 0.0
+		animate_smash()
 		return
 
-	var power := time_held / time_to_full
 	var is_perfect := t <= perfect_window
 	GameState.last_hit_perfect = is_perfect
 	_pending_perfect = is_perfect
 
-	GameState.ball.smash(power, is_perfect)
-	animate_smash(power)
-	time_held = 0.0
+	GameState.ball.smash(1.0, is_perfect)
+	animate_smash()
 
 ## Fires at actual contact, so the hitstop lands on the impact.
 func _on_paddle_hit(paddle: Node2D) -> void:
@@ -184,44 +169,7 @@ func _in_vertical_reach() -> bool:
 	var arrival_y := ball.global_position.y + ball.get_motion().y * t
 	return absf(arrival_y - global_position.y) <= reach
 
-# --- Normalized control ---
-
-## charge: 0 = flat, 1 = fully wound up. Cancels any running animation.
-func set_charge(charge: float) -> void:
-	kill_animation()
-	charge = clampf(charge, 0.0, 1.0)
-	bend = -charge * max_bend
-	shift = -charge * max_pullback
-	# Brighten the resting colour rather than fading toward white.
-	var base := _rest_color()
-	var lit := base * lerpf(1.0, charge_brightness, charge)
-	lit.a = base.a
-	self_modulate = lit
-
-## amount: -1 = fully wound back, 0 = flat, 1 = fully lunged forward.
-func set_flex(amount: float) -> void:
-	kill_animation()
-	amount = clampf(amount, -1.0, 1.0)
-	if amount < 0.0:
-		bend = amount * max_bend
-		shift = amount * max_pullback
-	else:
-		bend = amount * smash_bend
-		shift = amount * smash_lunge
-
 # --- Tweened animations (call once, they play themselves) ---
-
-## Winds up to `charge` over `time`.
-func animate_charge(charge: float, time: float) -> void:
-	kill_animation()
-	charge = clampf(charge, 0.0, 1.0)
-	var base := _rest_color()
-	var lit := base * lerpf(1.0, charge_brightness, charge)
-	lit.a = base.a
-	_tween = create_tween()
-	_add_step(-charge * max_bend, -charge * max_pullback, time,
-		Tween.TRANS_SINE, Tween.EASE_OUT)
-	_tween.parallel().tween_property(self, "self_modulate", lit, time)
 
 ## Snap forward, rebound the other way, then settle flat. Scaled by `power` (0 to 1).
 func animate_smash(power: float = 1.0) -> void:
@@ -238,12 +186,13 @@ func animate_smash(power: float = 1.0) -> void:
 	_add_step(0.0, 0.0, settle_time, Tween.TRANS_SINE, Tween.EASE_OUT)
 	_fade_glow(snap_time + rebound_time)
 
-## Eases back to flat, for a cancelled charge or a whiff.
-func animate_relax(time: float = 0.1) -> void:
+## A tap that missed its window: quick snap the wrong way, then settle flat.
+func animate_whiff() -> void:
 	kill_animation()
 	_tween = create_tween()
-	_add_step(0.0, 0.0, time, Tween.TRANS_SINE, Tween.EASE_OUT)
-	_fade_glow(time)
+	_add_step(-whiff_bend, -whiff_shift, whiff_time, Tween.TRANS_SINE, Tween.EASE_OUT)
+	_add_step(0.0, 0.0, whiff_settle_time, Tween.TRANS_SINE, Tween.EASE_OUT)
+	_fade_glow(whiff_time)
 
 func is_animating() -> bool:
 	return _tween != null and _tween.is_valid() and _tween.is_running()

@@ -4,8 +4,6 @@ extends Node
 @export var ballhits: AudioStreamPlayer
 
 @export var music_bus_name : String = "Music"
-@export var wind_up: AudioStreamPlayer
-@export var ding: AudioStreamPlayer
 @export var glass_crack: AudioStreamPlayer
 @export var glass_shatter: AudioStreamPlayer
 
@@ -80,7 +78,6 @@ var _damage_tween : Tween
 var _sweep_tween : Tween
 var _ult_tween : Tween
 var _pause_tween : Tween
-var _wind_up_tween : Tween
 
 func _ready() -> void:
 	# The pause duck needs _process (and its own tween) to keep running while
@@ -193,42 +190,6 @@ func play_pong(pitch: float = 1.0) -> void:
 		return
 	ballhits.pitch_scale = pitch
 	ballhits.play()
-
-## Starts the wind-up sound at its natural pitch and ramps it up to whatever
-## pitch makes the clip's own length fit inside `wind_up_time` — so a longer
-## charge (a bigger time_to_full) gets a slower climb, a shorter one gets a
-## steeper one, and either way the clip is finishing right around when the
-## charge would complete. Caller stops it early via stop_wind_up() on a
-## cancel, or once a smash actually lands (see smash.gd).
-func play_wind_up(wind_up_time: float) -> void:
-	if wind_up == null:
-		return
-	if _wind_up_tween and _wind_up_tween.is_valid():
-		_wind_up_tween.kill()
-
-	var length := wind_up.stream.get_length() if wind_up.stream else 0.0
-	wind_up.pitch_scale = 1.0
-	wind_up.play()
-
-	if wind_up_time <= 0.0 or length <= 0.0:
-		return
-	# Ramping linearly from 1.0 to peak_pitch, the average pitch over the
-	# ramp is (1 + peak_pitch) / 2 — solving for that average times
-	# wind_up_time to equal the clip's real length gives peak_pitch.
-	var peak_pitch := maxf(1.0, (2.0 * length / wind_up_time) - 1.0)
-	_wind_up_tween = create_tween()
-	_wind_up_tween.tween_property(wind_up, "pitch_scale", peak_pitch, wind_up_time)
-
-func stop_wind_up() -> void:
-	if _wind_up_tween and _wind_up_tween.is_valid():
-		_wind_up_tween.kill()
-	if wind_up:
-		wind_up.stop()
-
-func play_ding() -> void:
-	if ding == null:
-		return
-	ding.play()
 
 ## Called by the pause menu on open/close. Runs while the tree is actually
 ## paused, so this tween has to ignore pause the same way this whole node does.

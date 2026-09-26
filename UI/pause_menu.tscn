@@ -1,61 +1,17 @@
 [gd_scene format=3 uid="uid://w8vk4e3hnylh"]
 
 [ext_resource type="Script" uid="uid://c215cl5vg2lju" path="res://UI/pause_menu.gd" id="1_fu28r"]
-[ext_resource type="Shader" uid="uid://inkgkluterlc" path="res://Shaders/pause_menu_bg.gdshader" id="1_ltd3m"]
 [ext_resource type="Shader" uid="uid://ce1n0ftpw7x22" path="res://Shaders/profile.gdshader" id="2_jfm1e"]
 [ext_resource type="FontFile" uid="uid://bh0fcepun17kx" path="res://Assets/ChakraPetch-SemiBold.ttf" id="3_03fe5"]
 [ext_resource type="FontFile" uid="uid://dnmyx3m1s3qcm" path="res://Assets/ChakraPetch-Medium.ttf" id="4_0b5ob"]
-[ext_resource type="Shader" uid="uid://c1bu2q2fcckb5" path="res://Shaders/health_bar.gdshader" id="5_mexjk"]
 [ext_resource type="Script" uid="uid://cexx864usuyso" path="res://UI/health_manager_ui.gd" id="5_nben2"]
-[ext_resource type="Script" uid="uid://d08ciqfgst382" path="res://boss_health_bar.gd" id="6_fu28r"]
 [ext_resource type="PackedScene" uid="uid://dkm7bkg6fe4im" path="res://UI/health.tscn" id="6_xv4gp"]
 [ext_resource type="Shader" uid="uid://4vh4gwu8sptm" path="res://Shaders/ult_bar.gdshader" id="7_mxjhc"]
 [ext_resource type="Script" uid="uid://bytqf4b5ftts5" path="res://UI/ult_bar.gd" id="8_k6dah"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_v6d43"]
-shader = ExtResource("1_ltd3m")
-shader_parameter/left_color = Color(0.050980393, 0.05490196, 0.078431375, 1)
-shader_parameter/right_color = Color(0.08235294, 0.08627451, 0.12156863, 1)
-shader_parameter/line_color = Color(1, 1, 1, 0.6)
-shader_parameter/top_x = 0.62
-shader_parameter/bottom_x = 0.48
-shader_parameter/line_width = 0.003
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_03fe5"]
-shader = ExtResource("2_jfm1e")
-shader_parameter/border_color = Color(1, 1, 1, 1)
-shader_parameter/fill_color = Color(0, 0, 0, 0)
-shader_parameter/border_width = 0.0970000046075
-
 [sub_resource type="FontVariation" id="FontVariation_pqlge"]
 base_font = ExtResource("4_0b5ob")
 spacing_glyph = 2
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_pwekk"]
-shader = ExtResource("5_mexjk")
-shader_parameter/health = 1.0
-shader_parameter/segment_count = 10
-shader_parameter/break_low = -1
-shader_parameter/break_high = -1
-shader_parameter/break_progress = 0.0
-shader_parameter/base_color = Color(0.24705882, 0.8156863, 1, 1)
-shader_parameter/empty_dim = 0.12
-shader_parameter/shard_boost = 2.0
-shader_parameter/slant = 0.4
-shader_parameter/reverse = false
-shader_parameter/gap = 6.0
-shader_parameter/edge_softness = 1.0
-shader_parameter/shard_size = 14.0
-shader_parameter/crack_width = 1.5
-shader_parameter/burst_distance = 30.0
-shader_parameter/fall = 35.0
-shader_parameter/spin = 0.8
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_fu28r"]
-shader = ExtResource("2_jfm1e")
-shader_parameter/border_color = Color(1, 1, 1, 1)
-shader_parameter/fill_color = Color(0, 0, 0, 0)
-shader_parameter/border_width = 0.0970000046075
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_mexjk"]
 shader = ExtResource("7_mxjhc")
@@ -81,6 +37,12 @@ shader_parameter/spark_rate_width = 26.0
 shader_parameter/spark_jitter = 0.6
 shader_parameter/spark_speed = 22.0
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fu28r"]
+shader = ExtResource("2_jfm1e")
+shader_parameter/border_color = Color(1, 1, 1, 1)
+shader_parameter/fill_color = Color(0, 0, 0, 0)
+shader_parameter/border_width = 0.0970000046075
+
 [node name="PauseMenu" type="Control" unique_id=1625804187 node_paths=PackedStringArray("upgrades_you_have", "background", "enemy_side", "player_side")]
 layout_mode = 3
 anchors_preset = 15
@@ -89,13 +51,12 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_fu28r")
-upgrades_you_have = NodePath("PlayerSide/UpgradesYouHave")
+upgrades_you_have = NodePath("UpgradesYouHave")
 background = NodePath("Background")
-enemy_side = NodePath("EnemySide")
-player_side = NodePath("PlayerSide")
+enemy_side = NodePath("")
+player_side = NodePath("")
 
 [node name="Background" type="ColorRect" parent="." unique_id=438061031]
-material = SubResource("ShaderMaterial_v6d43")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -103,136 +64,46 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+color = Color(0.06666667, 0.06666667, 0.06666667, 0.7490196)
 
-[node name="EnemySide" type="Control" parent="." unique_id=1811359678]
+[node name="PlayerInfo" type="VBoxContainer" parent="." unique_id=1362059488]
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -566.0
-offset_top = -296.75
-offset_bottom = 296.75
+offset_left = -825.0
+offset_top = -190.0
+offset_right = -559.0
+offset_bottom = 29.0
 grow_horizontal = 0
 grow_vertical = 2
 
-[node name="EnemyProfilePic" type="ColorRect" parent="EnemySide" unique_id=642830932]
-material = SubResource("ShaderMaterial_03fe5")
-layout_mode = 1
-anchors_preset = 6
-anchor_left = 1.0
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -93.0
-offset_top = -173.00002
-offset_right = -55.028442
-offset_bottom = -135.02846
-grow_horizontal = 0
-grow_vertical = 2
-rotation = 0.7853982
-scale = Vector2(2.3594732, 2.3594732)
-
-[node name="Enemy" type="VBoxContainer" parent="EnemySide" unique_id=1736081196]
-layout_mode = 1
-anchors_preset = 6
-anchor_left = 1.0
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -317.0
-offset_top = -30.0
-offset_right = -51.0
-offset_bottom = 105.0
-grow_horizontal = 0
-grow_vertical = 2
-theme_override_constants/separation = 8
-
-[node name="CharacterName" type="Label" parent="EnemySide/Enemy" unique_id=238784538]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("3_03fe5")
-theme_override_font_sizes/font_size = 40
-text = "Water"
-horizontal_alignment = 2
-
-[node name="CharacterUltimate" type="Label" parent="EnemySide/Enemy" unique_id=488170785]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.84104, 0.84104, 0.84103996, 1)
-theme_override_fonts/font = SubResource("FontVariation_pqlge")
-text = "ULTIMATE • THE SPIKE"
-horizontal_alignment = 2
-
-[node name="BossHealth" type="ColorRect" parent="EnemySide/Enemy" unique_id=359853682]
-material = SubResource("ShaderMaterial_pwekk")
-custom_minimum_size = Vector2(0, 19.075)
-layout_mode = 2
-offset_transform_enabled = true
-offset_transform_scale = Vector2(-1, -1)
-script = ExtResource("6_fu28r")
-
-[node name="PlayerSide" type="Control" parent="." unique_id=1548859180]
-layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_top = -302.5
-offset_right = 566.0
-offset_bottom = 291.0
-grow_vertical = 2
-
-[node name="PlayerProfilePic" type="ColorRect" parent="PlayerSide" unique_id=1789050314]
-material = SubResource("ShaderMaterial_fu28r")
-layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_left = 181.0
-offset_top = -194.25
-offset_right = 243.34546
-offset_bottom = -131.90454
-grow_vertical = 2
-rotation = 0.7853982
-scale = Vector2(2.3594732, 2.3594732)
-
-[node name="PlayerInfo" type="VBoxContainer" parent="PlayerSide" unique_id=1362059488]
-layout_mode = 1
-anchors_preset = 6
-anchor_left = 1.0
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -239.0
-offset_top = -184.25
-offset_right = 27.0
-offset_bottom = 34.75
-grow_horizontal = 0
-grow_vertical = 2
-
-[node name="CharacterName" type="Label" parent="PlayerSide/PlayerInfo" unique_id=2094552253]
+[node name="CharacterName" type="Label" parent="PlayerInfo" unique_id=2094552253]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_03fe5")
 theme_override_font_sizes/font_size = 40
 text = "The warrior"
 
-[node name="CharacterUltimate" type="Label" parent="PlayerSide/PlayerInfo" unique_id=208346122]
+[node name="CharacterUltimate" type="Label" parent="PlayerInfo" unique_id=208346122]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.84104, 0.84104, 0.84103996, 1)
 theme_override_fonts/font = SubResource("FontVariation_pqlge")
 text = "ULTIMATE • THE SPIKE"
 
-[node name="Health" type="HBoxContainer" parent="PlayerSide/PlayerInfo" unique_id=447700861]
+[node name="Health" type="HBoxContainer" parent="PlayerInfo" unique_id=447700861]
 layout_mode = 2
 script = ExtResource("5_nben2")
 heart_scene = ExtResource("6_xv4gp")
 
-[node name="Health" parent="PlayerSide/PlayerInfo/Health" unique_id=231002280 instance=ExtResource("6_xv4gp")]
+[node name="Health" parent="PlayerInfo/Health" unique_id=231002280 instance=ExtResource("6_xv4gp")]
 layout_mode = 2
 
-[node name="Health2" parent="PlayerSide/PlayerInfo/Health" unique_id=8160750 instance=ExtResource("6_xv4gp")]
+[node name="Health2" parent="PlayerInfo/Health" unique_id=8160750 instance=ExtResource("6_xv4gp")]
 layout_mode = 2
 
-[node name="UltBar" type="ColorRect" parent="PlayerSide/PlayerInfo" unique_id=410690420]
+[node name="UltBar" type="ColorRect" parent="PlayerInfo" unique_id=410690420]
 material = SubResource("ShaderMaterial_mexjk")
 custom_minimum_size = Vector2(0, 13.075)
 layout_mode = 2
@@ -240,14 +111,28 @@ offset_transform_enabled = true
 offset_transform_scale = Vector2(-1, -1)
 script = ExtResource("8_k6dah")
 
-[node name="UpgradesYouHave" type="GridContainer" parent="PlayerSide" unique_id=648137629]
+[node name="UpgradesYouHave" type="GridContainer" parent="." unique_id=648137629]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 130.0
-offset_top = -220.0
+offset_top = -253.0
 offset_right = 503.0
-offset_bottom = -38.0
+offset_bottom = -71.0
 grow_vertical = 0
 columns = 3
+
+[node name="PlayerProfilePic" type="ColorRect" parent="." unique_id=1789050314]
+material = SubResource("ShaderMaterial_fu28r")
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 181.0
+offset_top = -200.0
+offset_right = 243.34546
+offset_bottom = -137.65454
+grow_vertical = 2
+rotation = 0.7853982
+scale = Vector2(2.3594732, 2.3594732)

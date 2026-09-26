@@ -41,6 +41,9 @@ const CATALOG : Array[Script] = [
 ]
 
 const HEAL_SCRIPT : Script = preload("res://Upgrades/heal.gd")
+## Blacklisted for now — the script stays, upgrades_ui.gd just stops
+## offering it. Flip back to true to bring Second Wind back.
+const HEAL_ENABLED := false
 
 @export_group("Testing")
 ## Forces this upgrade into the first slot of every roll (as long as it's

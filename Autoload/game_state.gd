@@ -69,6 +69,12 @@ var stat_damage_dealt := 0.0
 var stat_smashes := 0
 var stat_ignitions := 0
 
+## Total HP lost this run, regardless of Second Wind/Tough healing any of
+## it back — incremented in player_lose.gd. Scar Tissue reads this directly
+## instead of its own counter, so it credits HP lost before it was even
+## picked up, not just afterward.
+var hp_lost_this_run := 0
+
 ## True until Last Stand consumes it to survive one lethal hit this run.
 var _last_stand_available := false
 
@@ -178,3 +184,4 @@ func reset_run() -> void:
 	stat_damage_dealt = 0.0
 	stat_smashes = 0
 	stat_ignitions = 0
+	hp_lost_this_run = 0

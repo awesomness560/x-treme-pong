@@ -66,6 +66,7 @@ signal game_over
 
 ## Run-scoped counters for the game-over screen's stat display.
 var stat_damage_dealt := 0.0
+var stat_biggest_hit := 0.0
 var stat_smashes := 0
 var stat_ignitions := 0
 
@@ -145,6 +146,7 @@ var damage_bonus := 0.0
 func deal_damage(amount: float) -> float:
 	var final_amount := amount * (1.0 + damage_bonus)
 	stat_damage_dealt += final_amount
+	stat_biggest_hit = maxf(stat_biggest_hit, final_amount)
 	take_damage.emit(final_amount)
 	return final_amount
 
@@ -189,6 +191,7 @@ func reset_run() -> void:
 	healing_blocked = false
 	_boss_bag.clear()
 	stat_damage_dealt = 0.0
+	stat_biggest_hit = 0.0
 	stat_smashes = 0
 	stat_ignitions = 0
 	hp_lost_this_run = 0

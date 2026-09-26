@@ -62,6 +62,5 @@ func _on_restart_pressed() -> void:
 	get_tree().reload_current_scene()
 
 func _on_main_menu_pressed() -> void:
-	# No main menu scene exists yet (project.godot's run/main_scene is the
-	# gameplay scene itself) — nothing to switch to until one's built.
-	pass
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://UI/main_menu.tscn")

@@ -148,7 +148,7 @@ func _ready() -> void:
 	GameState.ball = self
 	SoundManager.bind_ball(self)
 	if sprite:
-		_base_color = sprite.modulate
+		_base_color = sprite.self_modulate
 	_serve_point = global_position if use_start_position else serve_position
 	reset_to_entrance()
 
@@ -278,11 +278,18 @@ func _update_ignitable() -> void:
 
 ## Hook: the ball is hot enough to ignite on a smash. Signal it to the player.
 func _on_became_ignitable() -> void:
-	pass
+	_update_smoke()
 
 ## Hook: the ball cooled below the ignition threshold.
 func _on_lost_ignitable() -> void:
-	pass
+	_update_smoke()
+
+## Smoke reads as "heating up" — on above the ignite threshold, off once it
+## actually catches (ignited) or cools back down. Called from both the
+## ignitable and ignited hooks so either one changing keeps it correct.
+func _update_smoke() -> void:
+	if smoke_particles:
+		smoke_particles.emitting = ignitable and not ignited
 
 ## Ignition is set by events, not derived from speed.
 func _set_ignited(value: bool) -> void:
@@ -304,6 +311,7 @@ func _on_ignited() -> void:
 		ignite_particles.emitting = true
 	if ignite:
 		ignite.play()
+	_update_smoke()
 
 ## Hook for the ball cooling off.
 func _on_extinguished() -> void:
@@ -311,6 +319,7 @@ func _on_extinguished() -> void:
 		ignite_particles.emitting = false
 	if ignite:
 		ignite.stop()
+	_update_smoke()
 
 func _apply_ignition_color() -> void:
 	if sprite == null:
@@ -320,7 +329,7 @@ func _apply_ignition_color() -> void:
 	var target := ignited_color if ignited else _base_color
 	GameState.camera_shook.emit(1.4)
 	_color_tween = create_tween()
-	_color_tween.tween_property(sprite, "modulate", target, color_fade_time)
+	_color_tween.tween_property(sprite, "self_modulate", target, color_fade_time)
 
 # --- Movement ---
 

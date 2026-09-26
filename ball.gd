@@ -98,6 +98,36 @@ var wall_bounce_speed_gain := 0.0
 ## the only thing that raises this.
 var pierce_chance := 0.0
 
+## Extra damage multiplier per second the current rally has lasted, capped
+## at rally_damage_bonus_cap, reset on any border hit. 0 rate (default) is
+## the base game's behaviour — Friction is the only thing that raises it.
+var rally_damage_rate := 0.0
+var rally_damage_bonus_cap := INF
+var _rally_time := 0.0
+
+## Flat border damage dealt on a wall bounce while ignited. 0 (default) is
+## the base game's behaviour — Backdraft is the only thing that raises this.
+var wall_ignite_damage := 0.0
+
+## Whether a border hit while ignited re-ignites the ball right after, and
+## how much extra speed that reignite adds on top of the normal reset to
+## start_speed. False/0 (default) is the base game's behaviour — Chain
+## Reaction is the only thing that changes these.
+var reignite_on_border := false
+var reignite_speed_boost := 0.0
+
+## Damage multiplier for a shot that bounced off a wall before reaching the
+## border, reset on the next paddle touch. 1.0 (default) is the base game's
+## behaviour — Rebound Artist is the only thing that raises this.
+var wall_bounce_damage_bonus := 1.0
+var _bounced_off_wall_this_shot := false
+
+## Extra damage per consecutive tap (non-smash hits only), reset on a smash
+## or a border hit. 0 (default) is the base game's behaviour — Rhythm is
+## the only thing that raises this.
+var tap_streak_damage_bonus := 0.0
+var _consecutive_taps := 0
+
 var ignited := false
 var ignitable := false
 
@@ -161,6 +191,9 @@ func reset_to_entrance() -> void:
 	_pending_factor = 0.0
 	_grace_timer = 0.0
 	_hit_count = 0
+	_rally_time = 0.0
+	_bounced_off_wall_this_shot = false
+	_consecutive_taps = 0
 	_last_event = "waiting"
 
 	GameState.last_hit_was_smash = false
@@ -293,6 +326,7 @@ func _apply_ignition_color() -> void:
 func _physics_process(delta: float) -> void:
 	if not in_play:
 		return
+	_rally_time += delta
 	_grace_timer = maxf(_grace_timer - delta, 0.0)
 	if _enemy_resolidify_pending and _grace_timer <= 0.0:
 		_enemy_resolidify_pending = false
@@ -324,6 +358,10 @@ func _physics_process(delta: float) -> void:
 	else:
 		_direction = _direction.bounce(normal)
 		_speed = minf(_speed + wall_bounce_speed_gain, max_speed)
+		_bounced_off_wall_this_shot = true
+		if ignited and wall_ignite_damage > 0.0:
+			var damage := GameState.deal_damage(wall_ignite_damage)
+			DamageNumbers.spawn(global_position, damage)
 		SoundManager.play_pong()
 
 # --- Border ---
@@ -333,11 +371,25 @@ func _hit_border(border: Node2D) -> void:
 		_break_border(border)
 		return
 
+	var was_ignited := ignited
 	var raw_damage := _compute_damage()
+	if _bounced_off_wall_this_shot:
+		raw_damage *= wall_bounce_damage_bonus
+	if not GameState.last_hit_was_smash:
+		raw_damage *= 1.0 + tap_streak_damage_bonus * _consecutive_taps
+
 	_speed = start_speed
 	_pending_factor = 0.0
 	_grace_timer = border_grace_time
+	_bounced_off_wall_this_shot = false
+	_consecutive_taps = 0
+	_rally_time = 0.0
 	_set_ignited(false)
+	if was_ignited and reignite_on_border:
+		# Still resets to start_speed above like any other border hit — this
+		# is a boost on top of that reset, not instead of it.
+		_set_ignited(true)
+		_speed = minf(_speed + reignite_speed_boost, max_speed)
 	_update_ignitable()
 	GameState.last_hit_was_smash = false
 
@@ -372,6 +424,7 @@ func _compute_damage() -> float:
 
 	var ignite_mult := ignite_damage_multiplier if ignited else 1.0
 	damage *= GameState.combo_multiplier * ignite_mult
+	damage *= 1.0 + minf(rally_damage_rate * _rally_time, rally_damage_bonus_cap)
 	if GameState.last_hit_perfect:
 		damage += perfect_bonus
 	return damage
@@ -402,6 +455,7 @@ func _bounce_off_paddle(collision: KinematicCollision2D) -> void:
 		_speed = minf(_speed * _pending_factor, max_speed)
 		GameState.last_hit_was_smash = true
 		GameState.stat_smashes += 1
+		_consecutive_taps = 0
 		_last_event = "SMASH x%.2f%s" % [_pending_factor, " IGNITE" if hot else ""]
 		_pending_factor = 0.0
 		if hot:
@@ -409,8 +463,12 @@ func _bounce_off_paddle(collision: KinematicCollision2D) -> void:
 	else:
 		_speed = _tap_speed()
 		GameState.last_hit_was_smash = false
+		_consecutive_taps += 1
 		_last_event = "tap"
 
+	# A new shot starts at every paddle touch — whatever wall it bounces off
+	# from here on counts toward the NEXT border hit, not this one.
+	_bounced_off_wall_this_shot = false
 	_last_event += " (%.0f -> %.0f)" % [before, _speed]
 	_hit_count += 1
 	_update_ignitable()

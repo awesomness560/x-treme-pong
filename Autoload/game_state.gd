@@ -121,17 +121,23 @@ var player_health = max_player_health :
 		player_health = value
 		player_health_changed.emit()
 
-## Multiplies every point of damage dealt to the boss, from any source
-## (border hits, ult breaks, event-triggered upgrades like Combustion) —
-## see deal_damage() below. Upgrades that boost "all damage" raise this
-## instead of touching each damage source individually.
-var damage_multiplier := 1.0
+## Immortal sets this so Second Wind stops being offered for the rest of
+## the run — checked in upgrades_ui.gd's "should we offer it" gate.
+var healing_blocked := false
 
-## Applies the multiplier, emits take_damage, and hands back the final
-## amount actually dealt — callers that also need to show it (damage
-## numbers) use the return value instead of re-deriving it themselves.
+## Sum of every "+X% damage" bonus currently active, from any source
+## (Glass Cannon, Fever, event-triggered upgrades like Combustion's proc
+## going through deal_damage() below) — final damage is amount * (1 +
+## damage_bonus). Additive on purpose: two +75% upgrades together should
+## read as +150%, not compound into +206%. An upgrade only multiplies
+## instead of adding here if its own text explicitly says so.
+var damage_bonus := 0.0
+
+## Applies the bonus, emits take_damage, and hands back the final amount
+## actually dealt — callers that also need to show it (damage numbers) use
+## the return value instead of re-deriving it themselves.
 func deal_damage(amount: float) -> float:
-	var final_amount := amount * damage_multiplier
+	var final_amount := amount * (1.0 + damage_bonus)
 	stat_damage_dealt += final_amount
 	take_damage.emit(final_amount)
 	return final_amount
@@ -153,7 +159,7 @@ func _scale_round() -> void:
 func reset_run() -> void:
 	max_player_health = 3
 	player_health = max_player_health
-	damage_multiplier = 1.0
+	damage_bonus = 0.0
 	boss_skill_bonus = 0.0
 	boss_health_multiplier = 1.0
 	combo_multiplier = 1.0
@@ -167,6 +173,7 @@ func reset_run() -> void:
 	input_locked = false
 	ult_active = false
 	_last_stand_available = false
+	healing_blocked = false
 	_boss_bag.clear()
 	stat_damage_dealt = 0.0
 	stat_smashes = 0

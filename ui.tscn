@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" uid="uid://ccah3pdwf4pxa" path="res://UI/upgrades.tscn" id="12_n5rqp"]
 [ext_resource type="PackedScene" uid="uid://w8vk4e3hnylh" path="res://UI/pause_menu.tscn" id="14_cxd00"]
 [ext_resource type="PackedScene" uid="uid://def737bn2hp2e" path="res://UI/game_over.tscn" id="15_etlur"]
+[ext_resource type="Script" uid="uid://cm1gour1o4yx2" path="res://UI/round_counter.gd" id="16_7rqds"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
 shader = ExtResource("1_m6e0p")
@@ -214,5 +215,14 @@ offset_top = 397.0
 offset_bottom = -35.0
 
 [node name="PauseMenu" parent="." unique_id=1625804187 instance=ExtResource("14_cxd00")]
+visible = false
 
 [node name="GameOver" parent="." unique_id=613613052 instance=ExtResource("15_etlur")]
+visible = false
+
+[node name="RoundCounter" type="Label" parent="." unique_id=658319451]
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Round: 4"
+horizontal_alignment = 1
+script = ExtResource("16_7rqds")

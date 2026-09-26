@@ -2,8 +2,9 @@ class_name UpgradeFever
 extends Upgrade
 
 ## Stays alive and reacts to health for the rest of the run, toggling its
-## own multiplicative contribution in and out so it stacks safely with
-## anything else touching GameState.damage_multiplier (e.g. Glass Cannon).
+## own additive contribution in and out so it stacks safely (adding, not
+## compounding) with anything else touching GameState.damage_bonus (e.g.
+## Glass Cannon).
 const ID := "fever"
 const DISPLAY_NAME := "Fever"
 const DESCRIPTION := "At 1 HP, damage +150%."
@@ -11,7 +12,7 @@ const CATEGORY := GameState.UPGRADE_CATAGORY.ENDURANCE
 const RARITY := GameState.UPGRADE_RARITY.RARE
 const TAGS : Array[String] = ["risk", "health", "damage"]
 
-const MULTIPLIER := 2.5 # +150%
+const BONUS := 1.5 # +150%
 
 var _active := false
 
@@ -25,6 +26,6 @@ func _on_health_changed() -> void:
 		return
 	_active = should_be_active
 	if _active:
-		GameState.damage_multiplier *= MULTIPLIER
+		GameState.damage_bonus += BONUS
 	else:
-		GameState.damage_multiplier /= MULTIPLIER
+		GameState.damage_bonus -= BONUS

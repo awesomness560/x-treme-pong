@@ -4,9 +4,9 @@ extends Node
 ## for how tag affinity multiplies on top of this. No tier is guaranteed;
 ## rarity is just one factor in a single flat weighted pick now.
 const RARITY_WEIGHTS := {
-	GameState.UPGRADE_RARITY.COMMON: 0.40,
+	GameState.UPGRADE_RARITY.COMMON: 0.50,
 	GameState.UPGRADE_RARITY.RARE: 0.40,
-	GameState.UPGRADE_RARITY.LEGENDARY: 0.20,
+	GameState.UPGRADE_RARITY.LEGENDARY: 0.10,
 }
 
 ## Extra weight multiplier per tag an offer shares with tags already owned —
@@ -28,6 +28,16 @@ const CATALOG : Array[Script] = [
 	preload("res://Upgrades/last_stand.gd"),
 	preload("res://Upgrades/refund.gd"),
 	preload("res://Upgrades/primed.gd"),
+	preload("res://Upgrades/friction.gd"),
+	preload("res://Upgrades/backdraft.gd"),
+	preload("res://Upgrades/chain_reaction.gd"),
+	preload("res://Upgrades/rebound_artist.gd"),
+	preload("res://Upgrades/rhythm.gd"),
+	preload("res://Upgrades/executioner.gd"),
+	preload("res://Upgrades/scar_tissue.gd"),
+	preload("res://Upgrades/immortal.gd"),
+	preload("res://Upgrades/ascendant.gd"),
+	preload("res://Upgrades/lingering_power.gd"),
 ]
 
 const HEAL_SCRIPT : Script = preload("res://Upgrades/heal.gd")

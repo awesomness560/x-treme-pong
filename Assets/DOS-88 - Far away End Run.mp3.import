@@ -13,7 +13,7 @@ dest_files=["res://.godot/imported/DOS-88 - Far away End Run.mp3-7da3b8da64a2974
 [params]
 
 loop=true
-loop_offset=0
-bpm=0
+loop_offset=0.0
+bpm=0.0
 beat_count=0
 bar_beats=4

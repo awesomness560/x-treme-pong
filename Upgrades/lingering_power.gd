@@ -7,7 +7,7 @@ extends Upgrade
 ## one that actually turns it back off.
 const ID := "lingering_power"
 const DISPLAY_NAME := "Lingering Power"
-const DESCRIPTION := "For a few seconds after firing, all damage +80%."
+const DESCRIPTION := "For a few seconds after firing ultimate, all damage +80%."
 const CATEGORY := GameState.UPGRADE_CATAGORY.ULTIMATE
 const RARITY := GameState.UPGRADE_RARITY.COMMON
 const TAGS : Array[String] = ["ultimate", "damage"]

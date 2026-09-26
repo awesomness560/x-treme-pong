@@ -9,6 +9,7 @@ signal ignitable_changed(ignitable: bool)
 signal border_broken(border: Node2D, damage: float)
 @export var ignite_particles: CPUParticles2D
 @export var ignite: AudioStreamPlayer
+@export var smoke_particles: CPUParticles2D
 
 @export_group("Speed")
 @export var start_speed: float = 400.0

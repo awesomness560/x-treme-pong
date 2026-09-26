@@ -171,6 +171,9 @@ func _scale_round() -> void:
 ## restart button before reloading the scene — autoloads (unlike scene
 ## nodes) survive a scene reload on their own, so this has to be explicit.
 func reset_run() -> void:
+	boss_type = BossType.FIRE
+	character = Character.PINK
+	boss_health = 1.0
 	max_player_health = 3
 	player_health = max_player_health
 	damage_bonus = 0.0

@@ -23,10 +23,17 @@ var speed_scale := 1.0
 
 var _locked_x := 0.0
 
+var capture : bool = false
+
 func _ready() -> void:
 	GameState.player = self
 	_locked_x = global_position.x
 	Input.mouse_mode = Input.MOUSE_MODE_CONFINED_HIDDEN
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.is_pressed() and not capture:
+		Input.mouse_mode = Input.MOUSE_MODE_CONFINED_HIDDEN
+		capture = true
 
 func _physics_process(delta: float) -> void:
 	if GameState.input_locked:

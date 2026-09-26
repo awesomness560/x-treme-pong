@@ -58,13 +58,15 @@ func _on_resume_pressed() -> void:
 	_close()
 
 func _on_restart_pressed() -> void:
-	# round_manager.gd's own _ready() resets both autoloads right as the
-	# reloaded scene starts up — no need to do it again here.
+	GameState.reset_run()
+	Upgrades.reset_run()
 	get_tree().paused = false
 	SoundManager.set_menu_duck(false)
 	get_tree().reload_current_scene()
 
 func _on_main_menu_pressed() -> void:
+	GameState.reset_run()
+	Upgrades.reset_run()
 	get_tree().paused = false
 	SoundManager.set_menu_duck(false)
 	get_tree().change_scene_to_file("res://UI/main_menu.tscn")

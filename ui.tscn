@@ -218,7 +218,6 @@ offset_bottom = -35.0
 visible = false
 
 [node name="GameOver" parent="." unique_id=613613052 instance=ExtResource("15_etlur")]
-visible = false
 
 [node name="RoundCounter" type="Label" parent="." unique_id=658319451]
 offset_right = 40.0

@@ -16,6 +16,13 @@ var _boss_rest_position : Vector2
 var _border_rest_position : Vector2
 
 func _ready() -> void:
+	# Covers both a fresh launch and a restart-triggered scene reload in one
+	# place — GameState.reset_run()/Upgrades.reset_run() already do "reset
+	# everything to defaults"; this is just the one spot that always runs
+	# right before a round actually begins.
+	GameState.reset_run()
+	Upgrades.reset_run()
+
 	GameState.boss_type = GameState.roll_next_boss_type()
 	set_song()
 	_boss_rest_position = GameState.enemy.global_position

@@ -154,7 +154,13 @@ func deal_damage(amount: float) -> float:
 var boss_skill_bonus := 0.0
 var boss_health_multiplier := 1.0
 
+## The run's current round, 1-based (round_manager.gd's own _ready() is
+## round 1; every _scale_round() call after that is the next one). The
+## pause menu reads this to show it to the player.
+var current_round := 1
+
 func _scale_round() -> void:
+	current_round += 1
 	boss_skill_bonus += 0.2
 	# Additive, not compounding — round 5 is x2.2, not x2.86.
 	boss_health_multiplier += 0.3
@@ -168,6 +174,7 @@ func reset_run() -> void:
 	damage_bonus = 0.0
 	boss_skill_bonus = 0.0
 	boss_health_multiplier = 1.0
+	current_round = 1
 	combo_multiplier = 1.0
 	last_hit_perfect = false
 	last_hit_was_smash = false

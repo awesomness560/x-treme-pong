@@ -8,8 +8,7 @@ func _on_play_pressed() -> void:
 
 
 func _on_tutorial_pressed() -> void:
-	# No tutorial scene exists yet — nothing to switch to until one's built.
-	pass
+	get_tree().change_scene_to_file("res://tutorial.tscn")
 
 
 func _on_quit_pressed() -> void:

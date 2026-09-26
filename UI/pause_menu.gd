@@ -27,6 +27,7 @@ func _open() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	openState = true
 	get_tree().paused = true
+	SoundManager.set_menu_duck(true)
 	_refresh_upgrade_badges()
 	if round_label:
 		round_label.text = "Round %d" % GameState.current_round
@@ -49,6 +50,7 @@ func _close() -> void:
 	Input.mouse_mode = prev_mouse_mode
 	openState = false
 	get_tree().paused = false
+	SoundManager.set_menu_duck(false)
 	hide()
 
 
@@ -59,8 +61,10 @@ func _on_restart_pressed() -> void:
 	# round_manager.gd's own _ready() resets both autoloads right as the
 	# reloaded scene starts up — no need to do it again here.
 	get_tree().paused = false
+	SoundManager.set_menu_duck(false)
 	get_tree().reload_current_scene()
 
 func _on_main_menu_pressed() -> void:
 	get_tree().paused = false
+	SoundManager.set_menu_duck(false)
 	get_tree().change_scene_to_file("res://UI/main_menu.tscn")

@@ -69,6 +69,11 @@ enum State { RECOVER, REACT, TRACK }
 ## manager is sliding a freshly spawned boss into place via tween.
 var entering := false
 
+## Tutorial-only override: forces the very next roll to miss, letting a shot
+## straight through to the border instead of being caught. Consumed after
+## one use. False (default) is the base game's behaviour.
+var force_miss_next := false
+
 var last_miss_chance := 0.0
 var will_miss := false
 
@@ -169,7 +174,10 @@ func _roll_for_shot() -> void:
 
 	last_miss_chance = clampf(chance, 0.0, miss_chance_cap)
 
-	if _guaranteed_return:
+	if force_miss_next:
+		will_miss = true
+		force_miss_next = false
+	elif _guaranteed_return:
 		will_miss = false
 		_guaranteed_return = false
 	else:

@@ -204,8 +204,11 @@ func reset_to_entrance() -> void:
 
 	global_position = _serve_point - Vector2(0.0, entrance_height)
 
-## Drop in, settle, pause, then serve.
-func enter_and_serve() -> void:
+## Drop in, settle, pause, then serve. `speed_override` (if >= 0) and
+## `side_override` (if non-zero, using launch()'s own +1/-1 convention) let a
+## caller like the tutorial force a specific serve instead of the base
+## game's random direction and start_speed.
+func enter_and_serve(speed_override: float = -1.0, side_override: float = 0.0) -> void:
 	_kill_entrance()
 
 	_entrance_tween = create_tween()
@@ -218,23 +221,23 @@ func enter_and_serve() -> void:
 		.set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 	# Beat, then go.
 	_entrance_tween.tween_interval(serve_delay)
-	_entrance_tween.tween_callback(_serve)
+	_entrance_tween.tween_callback(_serve.bind(speed_override, side_override))
 
-func _serve() -> void:
+func _serve(speed_override: float = -1.0, side_override: float = 0.0) -> void:
 	in_play = true
-	launch()
+	launch(speed_override, side_override)
 
 func _kill_entrance() -> void:
 	if _entrance_tween and _entrance_tween.is_valid():
 		_entrance_tween.kill()
 
-func launch() -> void:
-	_speed = start_speed
+func launch(speed_override: float = -1.0, side_override: float = 0.0) -> void:
+	_speed = start_speed if speed_override < 0.0 else speed_override
 	_pending_factor = 0.0
 	_last_event = "serve"
 	_hit_count = 0
 	var angle := deg_to_rad(randf_range(-max_launch_angle_deg, max_launch_angle_deg))
-	var side := 1.0 if randf() < 0.5 else -1.0
+	var side := (1.0 if randf() < 0.5 else -1.0) if side_override == 0.0 else side_override
 	_direction = Vector2(side * cos(angle), sin(angle))
 	GameState.last_hit_was_smash = false
 	GameState.last_hit_perfect = false

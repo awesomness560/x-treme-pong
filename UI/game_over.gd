@@ -1,5 +1,9 @@
 extends Control
 
+## How hard the game-over screen ducks the music's low-pass/volume, as a
+## fraction of the pause menu's own full duck — muffled, not as far as paused.
+@export_range(0.0, 1.0) var duck_strength: float = 0.5
+
 @export var restart: Button
 @export var upgrades_you_have: GridContainer
 @export var round_label: Label
@@ -20,6 +24,8 @@ func _ready() -> void:
 
 func _on_game_over() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	SoundManager.music.set("parameters/switch_to_clip", &"end")
+	SoundManager.set_menu_duck(true, duck_strength)
 
 	if round_label:
 		round_label.text = "Round " + str(GameState.current_round)
@@ -52,8 +58,10 @@ func _on_restart_pressed() -> void:
 	# round_manager.gd's own _ready() resets both autoloads right as the
 	# reloaded scene starts up — no need to do it again here.
 	get_tree().paused = false
+	SoundManager.set_menu_duck(false)
 	get_tree().reload_current_scene()
 
 func _on_main_menu_pressed() -> void:
 	get_tree().paused = false
+	SoundManager.set_menu_duck(false)
 	get_tree().change_scene_to_file("res://UI/main_menu.tscn")

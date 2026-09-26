@@ -1,0 +1,151 @@
+[gd_scene format=3 uid="uid://vsrlq0uqvbnm"]
+
+[ext_resource type="Script" uid="uid://dy0cn4wc55yyy" path="res://tutorial.gd" id="1_7n6eb"]
+[ext_resource type="Script" uid="uid://1tp7vl5f1cn0" path="res://wall.gd" id="2_hu44a"]
+[ext_resource type="PackedScene" uid="uid://dsyix1rmurfo6" path="res://ai.tscn" id="3_0cr88"]
+[ext_resource type="PackedScene" uid="uid://um742cw0df5j" path="res://player.tscn" id="4_4t6hg"]
+[ext_resource type="PackedScene" uid="uid://dyf6b555474er" path="res://border.tscn" id="5_7vrqn"]
+[ext_resource type="Script" uid="uid://r53upc3mwudj" path="res://camera.gd" id="6_bhfnd"]
+[ext_resource type="PackedScene" uid="uid://cub4xcf35fdp7" path="res://ball.tscn" id="7_0cr88"]
+[ext_resource type="Shader" uid="uid://o0u2fgk5o2pv" path="res://Shaders/dotted_line.gdshader" id="8_4t6hg"]
+[ext_resource type="FontFile" uid="uid://dnmyx3m1s3qcm" path="res://Assets/ChakraPetch-Medium.ttf" id="9_7vrqn"]
+[ext_resource type="Script" uid="uid://bvo70dtp8hc30" path="res://ult_charge.gd" id="10_tvjhf"]
+[ext_resource type="Shader" uid="uid://4vh4gwu8sptm" path="res://Shaders/ult_bar.gdshader" id="11_dl7dh"]
+[ext_resource type="Script" uid="uid://cu2a8xie0t1mm" path="res://ult_runner.gd" id="11_vmw6g"]
+[ext_resource type="Script" uid="uid://bytqf4b5ftts5" path="res://UI/ult_bar.gd" id="12_r4o0u"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tvjhf"]
+size = Vector2(1262, 62)
+
+[sub_resource type="FontVariation" id="FontVariation_bhfnd"]
+base_font = ExtResource("9_7vrqn")
+spacing_glyph = 2
+
+[sub_resource type="Environment" id="Environment_4t6hg"]
+background_mode = 3
+background_canvas_max_layer = 2
+glow_enabled = true
+glow_intensity = 1.4
+glow_bloom = 0.51
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7vrqn"]
+shader = ExtResource("8_4t6hg")
+shader_parameter/line_color = Color(1, 1, 1, 1)
+shader_parameter/thickness = 5.170000221825
+shader_parameter/dash_length = 25.8410011799475
+shader_parameter/gap_length = 14.0
+shader_parameter/softness = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_g52lx"]
+shader = ExtResource("11_dl7dh")
+shader_parameter/fill = 0.30000001425
+shader_parameter/rate = 0.0
+shader_parameter/flash = 0.0
+shader_parameter/sweep = 0.0
+shader_parameter/armed = 0.0
+shader_parameter/fill_color = Color(1, 0.25, 0.75, 1)
+shader_parameter/armed_color = Color(1, 0.8, 0.2, 1)
+shader_parameter/empty_color = Color(0.08, 0.04, 0.09, 1)
+shader_parameter/base_brightness = 0.9
+shader_parameter/anticipation_boost = 1.2
+shader_parameter/anticipation_from = 0.75
+shader_parameter/slant = 0.5500001211250001
+shader_parameter/edge_softness = 1.0
+shader_parameter/border_thickness = 1.5
+shader_parameter/border_color = Color(0.6, 0.3, 0.55, 1)
+shader_parameter/border_armed_boost = 1.6
+shader_parameter/border_padding = 1.0
+shader_parameter/spark_width = 14.0
+shader_parameter/spark_rate_width = 26.0
+shader_parameter/spark_jitter = 0.6
+shader_parameter/spark_speed = 22.0
+
+[node name="Tutorial" type="Node2D" unique_id=913152837 node_paths=PackedStringArray("tutorial_text", "ult_bar")]
+script = ExtResource("1_7n6eb")
+tutorial_text = NodePath("Player/TutorialText")
+ult_bar = NodePath("TutorialUI/UltBar")
+
+[node name="WallBottom" type="StaticBody2D" parent="." unique_id=300665785 node_paths=PackedStringArray("collision_shape")]
+script = ExtResource("2_hu44a")
+side = 1
+collision_shape = NodePath("CollisionShape2D")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallBottom" unique_id=1236104470]
+position = Vector2(0, -353)
+shape = SubResource("RectangleShape2D_tvjhf")
+
+[node name="WallTop" type="StaticBody2D" parent="." unique_id=1502420428 node_paths=PackedStringArray("collision_shape")]
+position = Vector2(0, 818)
+script = ExtResource("2_hu44a")
+collision_shape = NodePath("CollisionShape2D")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallTop" unique_id=1207098723]
+position = Vector2(0, -353)
+shape = SubResource("RectangleShape2D_tvjhf")
+
+[node name="AI" parent="." unique_id=1543865057 instance=ExtResource("3_0cr88")]
+position = Vector2(536, -2)
+miss_chance_cap = 0.0
+
+[node name="Player" parent="." unique_id=1814723530 instance=ExtResource("4_4t6hg")]
+position = Vector2(-552, 2)
+
+[node name="TutorialText" type="Label" parent="Player" unique_id=103177426]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -9.0
+offset_top = -103.0
+offset_right = 192.0
+offset_bottom = -80.0
+grow_horizontal = 2
+theme_override_fonts/font = SubResource("FontVariation_bhfnd")
+text = "left click to smash"
+uppercase = true
+
+[node name="Border" parent="." unique_id=1802476433 instance=ExtResource("5_7vrqn")]
+position = Vector2(581, 0)
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=2125760042]
+script = ExtResource("6_bhfnd")
+max_offset = Vector2(30, 30)
+
+[node name="Ball" parent="." unique_id=572260270 instance=ExtResource("7_0cr88")]
+position = Vector2(-2, -1)
+start_speed = 600.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1389950957]
+environment = SubResource("Environment_4t6hg")
+
+[node name="TutorialUI" type="CanvasLayer" parent="." unique_id=740922699]
+
+[node name="Dotted Line" type="ColorRect" parent="TutorialUI" unique_id=377253417]
+material = SubResource("ShaderMaterial_7vrqn")
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -411.5
+offset_right = 20.0
+offset_bottom = 411.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="UltBar" type="ColorRect" parent="TutorialUI" unique_id=748426385]
+visible = false
+material = SubResource("ShaderMaterial_g52lx")
+offset_left = 402.0
+offset_top = 13.0
+offset_right = 559.0
+offset_bottom = 25.0
+script = ExtResource("12_r4o0u")
+
+[node name="UltCharge" type="Node" parent="." unique_id=1699087727]
+script = ExtResource("10_tvjhf")
+
+[node name="UltRunner" type="Node" parent="UltCharge" unique_id=745663862]
+process_mode = 3
+script = ExtResource("11_vmw6g")
+cut_in_time = 0.8

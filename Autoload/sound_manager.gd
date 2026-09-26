@@ -191,14 +191,17 @@ func play_pong(pitch: float = 1.0) -> void:
 	ballhits.pitch_scale = pitch
 	ballhits.play()
 
-## Called by the pause menu on open/close. Runs while the tree is actually
-## paused, so this tween has to ignore pause the same way this whole node does.
-func set_paused_duck(is_paused: bool) -> void:
+## Called by the pause menu and the game-over screen on open/close. `strength`
+## lets a caller duck by less than the full pause feel (game over uses this
+## to read as muffled without going as far as an actual pause). Runs while
+## the tree may actually be paused, so this tween has to ignore pause the
+## same way this whole node does.
+func set_menu_duck(is_active: bool, strength: float = 1.0) -> void:
 	if _pause_tween and _pause_tween.is_valid():
 		_pause_tween.kill()
 	_pause_tween = create_tween()
 	_pause_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	_pause_tween.tween_property(self, "_pause_duck", 1.0 if is_paused else 0.0, pause_duck_time) \
+	_pause_tween.tween_property(self, "_pause_duck", strength if is_active else 0.0, pause_duck_time) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 # --- Push to the bus ---

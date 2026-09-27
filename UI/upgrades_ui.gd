@@ -27,6 +27,14 @@ func open() -> void:
 		for script in Upgrades.roll(3):
 			_add_card(script)
 
+	if get_child_count() == 0:
+		# Pool's empty — nothing left to offer, so there's nothing to choose.
+		# Same cleanup _on_card_chosen() does, just skipping straight to it.
+		Input.mouse_mode = Input.MOUSE_MODE_CONFINED_HIDDEN
+		closed.emit()
+		GameState.start_round.emit()
+		return
+
 	show()
 
 	# One full frame so the container settles on final slots for the whole

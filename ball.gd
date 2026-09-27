@@ -70,6 +70,14 @@ signal border_broken(border: Node2D, damage: float)
 ## Pause at the serve point before the ball launches.
 @export var serve_delay: float = 0.4
 
+@export_group("Bounds Safety")
+## If the ball ends up more than this far outside the visible court while
+## in play, treat it as a physics glitch (e.g. tunneling through a border)
+## instead of leaving it lost off-screen — re-serve with no penalty, same
+## as a normal serve. Generous on purpose: the entrance park spot is well
+## outside this too, but that's only ever checked while in_play is false.
+@export var out_of_bounds_margin: float = 300.0
+
 @export_group("Debug")
 @export var debug_label: Control
 @export var debug_enabled: bool = true
@@ -336,8 +344,23 @@ func _apply_ignition_color() -> void:
 
 # --- Movement ---
 
+## True once the ball is out_of_bounds_margin past the visible court —
+## catches a physics glitch (e.g. tunneling through a border) rather than
+## leaving the ball lost off-screen forever.
+func _is_out_of_bounds() -> bool:
+	var court := _get_court_rect().grow(out_of_bounds_margin)
+	return not court.has_point(global_position)
+
+func _get_court_rect() -> Rect2:
+	var viewport := get_viewport()
+	return viewport.get_canvas_transform().affine_inverse() * viewport.get_visible_rect()
+
 func _physics_process(delta: float) -> void:
 	if not in_play:
+		return
+	if _is_out_of_bounds():
+		reset_to_entrance()
+		enter_and_serve()
 		return
 	_rally_time += delta
 	_grace_timer = maxf(_grace_timer - delta, 0.0)

@@ -38,6 +38,24 @@ const CATALOG : Array[Script] = [
 	preload("res://Upgrades/immortal.gd"),
 	preload("res://Upgrades/ascendant.gd"),
 	preload("res://Upgrades/lingering_power.gd"),
+	preload("res://Upgrades/amplify.gd"),
+	preload("res://Upgrades/low_flashpoint.gd"),
+	preload("res://Upgrades/overheat.gd"),
+	preload("res://Upgrades/snowball.gd"),
+	preload("res://Upgrades/perfect_storm.gd"),
+	preload("res://Upgrades/hoarder.gd"),
+	preload("res://Upgrades/relentless.gd"),
+	preload("res://Upgrades/critical_mass.gd"),
+	preload("res://Upgrades/lightning_rod.gd"),
+	preload("res://Upgrades/furnace.gd"),
+	preload("res://Upgrades/apex.gd"),
+	preload("res://Upgrades/blaze.gd"),
+	preload("res://Upgrades/convergence.gd"),
+	preload("res://Upgrades/harvest.gd"),
+	preload("res://Upgrades/kindred.gd"),
+	preload("res://Upgrades/veteran.gd"),
+	preload("res://Upgrades/legacy.gd"),
+	preload("res://Upgrades/tinder.gd"),
 ]
 
 const HEAL_SCRIPT : Script = preload("res://Upgrades/heal.gd")
@@ -50,6 +68,10 @@ const HEAL_ENABLED := false
 ## still in the pool), so you can pick it deliberately and verify it works.
 ## The rest of the offer still rolls normally. Leave null for normal play.
 @export var force_upgrade : Script
+
+## Fires after commit() finishes activating the new upgrade — Hoarder uses
+## this to recompute its own bonus whenever the owned count changes.
+signal upgrade_taken(script: Script)
 
 var _pool : Array[Script] = []
 
@@ -129,6 +151,7 @@ func commit(script: Script) -> Upgrade:
 	var instance := script.new() as Upgrade
 	add_child(instance)
 	instance.activate()
+	upgrade_taken.emit(script)
 	return instance
 
 func _weighted_pick(weights: Dictionary):

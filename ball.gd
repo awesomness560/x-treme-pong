@@ -131,11 +131,47 @@ var reignite_speed_boost := 0.0
 var wall_bounce_damage_bonus := 1.0
 var _bounced_off_wall_this_shot := false
 
-## Extra damage per consecutive tap (non-smash hits only), reset on a smash
-## or a border hit. 0 (default) is the base game's behaviour — Rhythm is
-## the only thing that raises this.
+## Extra damage per consecutive hit (smash or tap), reset on a border hit.
+## 0 (default) is the base game's behaviour — Rhythm is the only thing that
+## raises this.
 var tap_streak_damage_bonus := 0.0
-var _consecutive_taps := 0
+var _consecutive_hits := 0
+
+## Extra flat speed added on every paddle hit, on top of whatever that hit
+## already gains — smashes included. 0 (default) is the base game's
+## behaviour — Momentum is the only thing that raises this.
+var extra_speed_per_hit := 0.0
+
+## Additive damage bonus while at or above the ignite threshold (hot,
+## whether actually ignited or not) — read by GameState.deal_damage() so it
+## covers every kind of damage, not just border hits. 0 (default) is the
+## base game's behaviour — Overheat is the only thing that raises this.
+var hot_damage_bonus := 0.0
+
+## Flat multiplier on damage for a perfect smash landed at the speed cap.
+## 1.0 (default, inert) is the base game's behaviour — Perfect Storm is the
+## only thing that raises this.
+var perfect_storm_damage_multiplier := 1.0
+
+## Additive bonus applied to the ult break's damage only. 0 (default) is
+## the base game's behaviour — Amplify is the only thing that raises this.
+var ult_damage_bonus := 0.0
+
+## Additive bonus applied to a border hit that was reached by the first
+## smash after a wall bounce. 0 (default) is the base game's behaviour —
+## Lightning Rod is the only thing that raises this.
+var lightning_rod_bonus := 0.0
+## Whether *this* shot's smash landed while _bounced_off_wall_this_shot was
+## still true — set at the smash itself, consumed (and cleared either way)
+## at the border hit it eventually leads to.
+var _wall_bounce_smash_this_shot := false
+
+## Additive damage bonus for a perfect smash on an ignited ball — read by
+## GameState.deal_damage() alongside its other bonuses (not an independent
+## multiplier) so it adds to the pile instead of compounding with it. 0
+## (default) is the base game's behaviour — Convergence is the only thing
+## that raises this.
+var convergence_damage_bonus := 0.0
 
 var ignited := false
 var ignitable := false
@@ -202,7 +238,8 @@ func reset_to_entrance() -> void:
 	_hit_count = 0
 	_rally_time = 0.0
 	_bounced_off_wall_this_shot = false
-	_consecutive_taps = 0
+	_wall_bounce_smash_this_shot = false
+	_consecutive_hits = 0
 	_last_event = "waiting"
 
 	GameState.last_hit_was_smash = false
@@ -411,14 +448,16 @@ func _hit_border(border: Node2D) -> void:
 	var raw_damage := _compute_damage()
 	if _bounced_off_wall_this_shot:
 		raw_damage *= wall_bounce_damage_bonus
-	if not GameState.last_hit_was_smash:
-		raw_damage *= 1.0 + tap_streak_damage_bonus * _consecutive_taps
+	raw_damage *= 1.0 + tap_streak_damage_bonus * _consecutive_hits
+	if _wall_bounce_smash_this_shot:
+		raw_damage *= 1.0 + lightning_rod_bonus
 
 	_speed = start_speed
 	_pending_factor = 0.0
 	_grace_timer = border_grace_time
 	_bounced_off_wall_this_shot = false
-	_consecutive_taps = 0
+	_wall_bounce_smash_this_shot = false
+	_consecutive_hits = 0
 	_rally_time = 0.0
 	_set_ignited(false)
 	if was_ignited and reignite_on_border:
@@ -447,7 +486,7 @@ func _break_border(border: Node2D) -> void:
 	GameState.last_hit_was_smash = false
 	GameState.last_hit_perfect = false
 
-	var damage := GameState.deal_damage(ult_break_damage)
+	var damage := GameState.deal_damage(ult_break_damage * (1.0 + ult_damage_bonus))
 	_last_event = "ULT BREAK (%.2f dmg)" % damage
 	GameState.ult_impact.emit()
 	border_broken.emit(border, damage)
@@ -463,6 +502,8 @@ func _compute_damage() -> float:
 	damage *= 1.0 + minf(rally_damage_rate * _rally_time, rally_damage_bonus_cap)
 	if GameState.last_hit_perfect:
 		damage += perfect_bonus
+	if GameState.last_hit_perfect and get_speed_ratio() >= 1.0:
+		damage *= perfect_storm_damage_multiplier
 	return damage
 
 # --- Paddle returns ---
@@ -484,22 +525,29 @@ func _bounce_off_paddle(collision: KinematicCollision2D) -> void:
 	if collider is EnemyPaddle:
 		_speed = _enemy_return_speed()
 		GameState.last_hit_was_smash = false
+		_wall_bounce_smash_this_shot = false
 		_last_event = "boss return"
 	elif _pending_factor > 1.0:
 		# Ignition is earned: a smash landed while the ball was already hot.
 		var hot := ignitable
-		_speed = minf(_speed * _pending_factor, max_speed)
+		_speed = minf(_speed * _pending_factor + extra_speed_per_hit, max_speed)
 		GameState.last_hit_was_smash = true
 		GameState.stat_smashes += 1
-		_consecutive_taps = 0
+		_consecutive_hits += 1
+		# Lightning Rod: only the smash that lands while still riding the wall
+		# bounce qualifies — captured here, before the shared reset below.
+		_wall_bounce_smash_this_shot = _bounced_off_wall_this_shot
 		_last_event = "SMASH x%.2f%s" % [_pending_factor, " IGNITE" if hot else ""]
 		_pending_factor = 0.0
 		if hot:
 			_set_ignited(true)
 	else:
-		_speed = _tap_speed()
+		_speed = minf(_tap_speed() + extra_speed_per_hit, max_speed)
 		GameState.last_hit_was_smash = false
-		_consecutive_taps += 1
+		_consecutive_hits += 1
+		# A tap uses up the wall-bounce window without qualifying — only the
+		# FIRST touch after a wall bounce can trigger Lightning Rod at all.
+		_wall_bounce_smash_this_shot = false
 		_last_event = "tap"
 
 	# A new shot starts at every paddle touch — whatever wall it bounces off

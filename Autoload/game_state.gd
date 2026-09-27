@@ -137,18 +137,47 @@ var healing_blocked := false
 ## going through deal_damage() below) — final damage is amount * (1 +
 ## damage_bonus). Additive on purpose: two +75% upgrades together should
 ## read as +150%, not compound into +206%. An upgrade only multiplies
-## instead of adding here if its own text explicitly says so.
+## instead of adding here if its own text explicitly says so. Permanent for
+## the whole run — see round_damage_bonus below for the round-scoped twin.
 var damage_bonus := 0.0
 
-## Applies the bonus, emits take_damage, and hands back the final amount
-## actually dealt — callers that also need to show it (damage numbers) use
-## the return value instead of re-deriving it themselves.
+## Same shape and same additive rule as damage_bonus, but zeroed every
+## round (in _scale_round() below) instead of every run — for upgrades
+## whose text says "for the round" rather than "for the run".
+var round_damage_bonus := 0.0
+
+## Same idea as round_damage_bonus, but only counts while the ball is
+## actually ignited at the moment of the hit — the round-scoped twin of
+## ball.hot_damage_bonus (which is "hot", i.e. above the ignite threshold,
+## and lasts the whole run).
+var round_ignited_damage_bonus := 0.0
+
+## Applies every active bonus, emits take_damage, and hands back the final
+## amount actually dealt — callers that also need to show it (damage
+## numbers) use the return value instead of re-deriving it themselves.
 func deal_damage(amount: float) -> float:
-	var final_amount := amount * (1.0 + damage_bonus)
+	var bonus := damage_bonus + round_damage_bonus
+	if ball:
+		if ball.get_speed_ratio() >= ball.ignite_min_ratio:
+			bonus += ball.hot_damage_bonus
+		if ball.ignited:
+			bonus += round_ignited_damage_bonus
+		if last_hit_perfect and ball.ignited:
+			bonus += ball.convergence_damage_bonus
+	var final_amount := amount * (1.0 + bonus)
 	stat_damage_dealt += final_amount
 	stat_biggest_hit = maxf(stat_biggest_hit, final_amount)
 	take_damage.emit(final_amount)
 	return final_amount
+
+## For an effect defined as a multiple of a hit's already-final damage
+## (Critical Mass's detonation) — adds straight to the stats and signal
+## without running the bonuses above a second time on top of a number that
+## already includes them once.
+func deal_raw_damage(amount: float) -> void:
+	stat_damage_dealt += amount
+	stat_biggest_hit = maxf(stat_biggest_hit, amount)
+	take_damage.emit(amount)
 
 ## Additive bonus applied to every new boss's base `skill`, and the
 ## cumulative multiplier applied to every new border's base
@@ -166,6 +195,8 @@ func _scale_round() -> void:
 	boss_skill_bonus += 0.2
 	# Additive, not compounding — round 5 is x2.2, not x2.86.
 	boss_health_multiplier += 0.3
+	round_damage_bonus = 0.0
+	round_ignited_damage_bonus = 0.0
 
 ## Restores every run-scoped field back to its starting value. Called by the
 ## restart button before reloading the scene — autoloads (unlike scene
@@ -177,6 +208,8 @@ func reset_run() -> void:
 	max_player_health = 3
 	player_health = max_player_health
 	damage_bonus = 0.0
+	round_damage_bonus = 0.0
+	round_ignited_damage_bonus = 0.0
 	boss_skill_bonus = 0.0
 	boss_health_multiplier = 1.0
 	current_round = 1

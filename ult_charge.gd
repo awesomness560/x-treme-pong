@@ -100,6 +100,11 @@ func on_overkill(overkill_damage: float) -> void:
 	var refund := overkill_damage * refund_fraction
 	_award(minf(refund, max_charge * refund_cap), GameState.GainKind.REFUND)
 
+## Call this to grant a flat fraction of a full bar directly — Stoke calls
+## this on every ignition, on top of the base ignition_trigger award.
+func award_fraction(fraction: float, kind: GameState.GainKind = GameState.GainKind.IGNITION) -> void:
+	_award(max_charge * fraction, kind)
+
 # --- Spending ---
 
 ## Fires the ult's cost. Returns false if not armed.
